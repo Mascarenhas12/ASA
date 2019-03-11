@@ -94,9 +94,12 @@ static void dfsVisitG(Graph g, int u,void* arg, int count)
   DFSarg_t* temp = (DFSarg_t*)arg;
 	temp->color[u] = GRAY;
 	temp->d[u] = count++;
-
-	for (v = g->adjacencies[u]; v; v = g->adjacencies[u]->next)
+  puts("ffnuoanfoansdoaw");
+  int i = 0;
+	for (v = g->adjacencies[u]; v!= NULL || i > 20; i++, v = g->adjacencies[u]->next)
 	{
+    printf("%d\n", g->adjacencies[u]->id);
+    //printf("%d\n", g->adjacencies[u]->next->id);
 		if (temp->color[v->id] == WHITE)
 		{
 			temp->p[v->id] = u;
@@ -125,7 +128,7 @@ DFSarg_t depthFirstSearchG(Graph g)
 	int f[g->V+1];     /* Finish times */
 	int p[g->V+1];     /* Precedents */
   DFSarg_t temp= {color,d,f,p};
-
+  puts("fuck scanf");
 	int u;
 	int count = 1; /* Time count of the algorithm */
 
@@ -136,6 +139,7 @@ DFSarg_t depthFirstSearchG(Graph g)
 	}
 	for (u = 1; u < g->V+1; u++)
 	{
+    puts("cnacnancnacn");
 		if (color[u] == WHITE)
 		{
 			dfsVisitG(g, u,(void*)&temp, count);

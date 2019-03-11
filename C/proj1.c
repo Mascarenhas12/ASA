@@ -16,15 +16,12 @@
 int main() {
 	int numNodes;
 	int numEdges;
-	scanf("%d\n", &numNodes);
-	printf("%d\n", numNodes);
+	scanf("%d", &numNodes);
 	Graph G = initG(numNodes);
-	scanf("%d\n", &numEdges);
-	printf("%d\n", numEdges);
+	scanf("%d", &numEdges);
 	for(int i=0;i<numEdges;i++){
 		int u,v;
-		scanf("%d %d\n", &u,&v);
-		puts("wow");
+		scanf("%d %d", &u,&v);
 		insertEdgeG(G,createEdgeG(u,v));
 	}
 
