@@ -13,7 +13,21 @@
 #include "graph.h"
 #include "list.h"
 
-int main()
-{
-	printf("Hello World\n");
+int main() {
+	int numNodes;
+	int numEdges;
+	scanf("%d\n", &numNodes);
+	printf("%d\n", numNodes);
+	Graph G = initG(numNodes);
+	scanf("%d\n", &numEdges);
+	printf("%d\n", numEdges);
+	for(int i=0;i<numEdges;i++){
+		int u,v;
+		scanf("%d %d\n", &u,&v);
+		puts("wow");
+		insertEdgeG(G,createEdgeG(u,v));
+	}
+
+	DFSarg_t DFS = depthFirstSearchG(G);
+	return 0;
 }

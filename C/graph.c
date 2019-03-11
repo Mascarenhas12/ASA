@@ -88,29 +88,29 @@ void removeEdgeG(Graph g, Edge e)
 	g->E--;
 }
 
-static void dfsVisitG(Graph g, int u, int color[], int d[], int f[], int p[], int count)
+static void dfsVisitG(Graph g, int u,void* arg, int count)
 {
 	Link v;
-
-	color[u] = GRAY;
-	d[u] = count++;
+  DFSarg_t* temp = (DFSarg_t*)arg;
+	temp->color[u] = GRAY;
+	temp->d[u] = count++;
 
 	for (v = g->adjacencies[u]; v; v = g->adjacencies[u]->next)
 	{
-		if (color[v->id] == WHITE)
+		if (temp->color[v->id] == WHITE)
 		{
-			p[v->id] = u;
-			dfsVisitG(g, v->id, color, d, f, p, count);
+			temp->p[v->id] = u;
+			dfsVisitG(g, v->id, (void*)temp, count);
 		}
-		
-		if (color[v->id] == GRAY && p[u] != v->id)
+
+		if (temp->color[v->id] == GRAY && temp->p[u] != v->id)
 		{
 			/* Its a B-Edge */
 		}
 	}
 
-	color[u] = BLACK;
-	f[u] = count++;
+	temp->color[u] = BLACK;
+	temp->f[u] = count++;
 }
 
 /* Function that applies a depth-first search to the given graph.
@@ -118,28 +118,31 @@ static void dfsVisitG(Graph g, int u, int color[], int d[], int f[], int p[], in
  *
  * g - Graph to apply a dfs
  */
-void depthFirstSearchG(Graph g)
+DFSarg_t depthFirstSearchG(Graph g)
 {
-	int color[g->V]; /* Vertex visit states */
-	int d[g->V];     /* Discovery times */
-	int f[g->V];     /* Finish times */
-	int p[g->V];     /* Precedents */
+	int color[g->V+1]; /* Vertex visit states */
+	int d[g->V+1];     /* Discovery times */
+	int f[g->V+1];     /* Finish times */
+	int p[g->V+1];     /* Precedents */
+  DFSarg_t temp= {color,d,f,p};
 
 	int u;
 	int count = 1; /* Time count of the algorithm */
 
-	for (u = 0; u < g->V; u++)
+	for (u = 1; u < g->V+1; u++)
 	{
 		color[u] = WHITE;
 		p[u] = -1;
 	}
-	for (u = 0; u < g->V; u++)
+	for (u = 1; u < g->V+1; u++)
 	{
 		if (color[u] == WHITE)
 		{
-			dfsVisitG(g, u, color, d, f, p, count);
+			dfsVisitG(g, u,(void*)&temp, count);
 		}
 	}
+
+  return temp;
 }
 
 /* Function that frees a graph from memory, given a pointer to it.
@@ -159,16 +162,3 @@ void freeG(Graph g)
 	free(g->adjacencies);
 	free(g);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
