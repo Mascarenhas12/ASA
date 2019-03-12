@@ -13,18 +13,39 @@
 #include "graph.h"
 #include "list.h"
 
-int main() {
-	int numNodes;
-	int numEdges;
-	scanf("%d", &numNodes);
-	Graph G = initG(numNodes);
-	scanf("%d", &numEdges);
-	for(int i=0;i<numEdges;i++){
-		int u,v;
-		scanf("%d %d", &u,&v);
-		insertEdgeG(G,createEdgeG(u,v));
+#define MIN_ROUTER_NUM 2
+#define MIN_CONNECTION_NUM 1
+
+int main()
+{
+	int V;   /* Number of routers */
+	int E;   /* Number of connections bettween routers */
+	Graph G; /* Graph structure that maps the router network */
+
+	int u, v; /* Routers to connect */
+
+	int i;
+
+	if (!scanf("%d", &V) || V < MIN_ROUTER_NUM)
+		printf("Invalid number of routers!\n");
+
+	if (!scanf("%d", &E) || E < MIN_CONNECTION_NUM)
+		printf("Invalid number of connections!\n");
+
+	G = initG(V);
+
+	for (i = 0; i < E; i++)
+	{
+		scanf("%d %d", &u, &v);
+		insertEdgeG(G, createEdgeG(u, v));
 	}
 
-	DFSarg_t DFS = depthFirstSearchG(G);
+	/* ********** DEBUG ********** */
+	printf("\n***** ROUTER NETWORK *****\n");
+	printG(G);
+	/* ********** DEBUG ********** */
+
+	dfsState_t state = dfsG(G);
+
 	return 0;
 }

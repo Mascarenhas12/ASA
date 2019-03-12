@@ -67,8 +67,8 @@ void insertEdgeG(Graph G, Edge e)
 	int u = e.u;
 	int v = e.v;
 
-	G->adjacencies[u] = insertL(G->adjacencies[u], v);
-	G->adjacencies[v] = insertL(G->adjacencies[v], u);
+	G->adjacencies[u-1] = insertL(G->adjacencies[u-1], v);
+	G->adjacencies[v-1] = insertL(G->adjacencies[v-1], u);
 	G->E++;
 }
 
@@ -83,37 +83,36 @@ void removeEdgeG(Graph G, Edge e)
 	int u = e.u;
 	int v = e.v;
 
-	removeL(G->adjacencies[u], v);
-	removeL(G->adjacencies[v], u);
+	removeL(G->adjacencies[u-1], v);
+	removeL(G->adjacencies[v-1], u);
 	G->E--;
 }
 
-static void dfsVisitG(Graph G, int u,void* arg, int count)
+static int dfsVisitG(Graph G, int u, void* args, int count)
 {
 	Link v;
-  DFSarg_t* temp = (DFSarg_t*)arg;
-	temp->color[u] = GRAY;
-	temp->d[u] = count++;
-  puts("ffnuoanfoansdoaw");
-  int i = 0;
-	for (v = G->adjacencies[u]; v!= NULL || i > 20; i++, v = G->adjacencies[u]->next)
+
+  	dfsState_t* state = (dfsState_t*) args;
+	state->color[u-1] = GRAY;
+	state->d[u-1] = count++;
+
+	for (v = G->adjacencies[u-1]; v; v = v->next)
 	{
-    printf("%d\n", G->adjacencies[u]->id);
-    //printf("%d\n", G->adjacencies[u]->next->id);
-		if (temp->color[v->id] == WHITE)
+		if (state->color[v->id-1] == WHITE)
 		{
-			temp->p[v->id] = u;
-			dfsVisitG(G, v->id, (void*)temp, count);
+			state->p[v->id-1] = u;
+			count = dfsVisitG(G, v->id, (void*) state, count);
 		}
 
-		if (temp->color[v->id] == GRAY && temp->p[u] != v->id)
+		if (state->color[v->id-1] == GRAY && state->p[u-1] != v->id)
 		{
 			/* Its a B-Edge */
 		}
 	}
 
-	temp->color[u] = BLACK;
-	temp->f[u] = count++;
+	state->color[u-1] = BLACK;
+	state->f[u-1] = count++;
+	return count;
 }
 
 /* Function that applies a depth-first search to the given graph.
@@ -121,32 +120,40 @@ static void dfsVisitG(Graph G, int u,void* arg, int count)
  *
  * G - Graph to apply a dfs
  */
-DFSarg_t depthFirstSearchG(Graph G)
+dfsState_t dfsG(Graph G)
 {
-	int color[G->V+1]; /* Vertex visit states */
-	int d[G->V+1];     /* Discovery times */
-	int f[G->V+1];     /* Finish times */
-	int p[G->V+1];     /* Precedents */
-  DFSarg_t temp= {color,d,f,p};
-  puts("fuck scanf");
-	int u;
-	int count = 1; /* Time count of the algorithm */
+	int color[G->V]; /* Vertex visit states */
+	int d[G->V];     /* Discovery times */
+	int f[G->V];     /* Finish times */
+	int p[G->V];     /* Precedents */
 
-	for (u = 1; u < G->V+1; u++)
+  	dfsState_t state = {color, d, f, p};
+
+	int u;		   /* Vertex id */
+	int count = 1;   /* Time count of the algorithm */
+
+	for (u = 1; u <= G->V; u++)
 	{
-		color[u] = WHITE;
-		p[u] = -1;
+		color[u-1] = WHITE;
+		p[u-1] = -1;
 	}
-	for (u = 1; u < G->V+1; u++)
+	for (u = 1; u <= G->V; u++)
 	{
-    puts("cnacnancnacn");
-		if (color[u] == WHITE)
+		if (color[u-1] == WHITE)
 		{
-			dfsVisitG(G, u,(void*)&temp, count);
+			count = dfsVisitG(G, u, (void*) &state, count);
 		}
 	}
-
-  return temp;
+	/* ********** DFS DEBUG ********** */
+	printf("\n***** DFS State *****\n");
+	for (u = 1; u <= G->V; u++)
+	{
+		printf("%.2d: ", u);
+		printf("color=%d d[%.2d]=%-2d f[%.2d]=%-2d p[%.2d]=%-2d", color[u-1], u-1, d[u-1], u-1, f[u-1], u-1, p[u-1]);
+		printf("\n");
+	}
+	/* ********** DFS DEBUG ********** */
+  	return state;
 }
 
 /* Function that prints the adjacency list representing the given graph.

@@ -18,14 +18,14 @@ struct edge
 	int v;
 };
 
-struct DFSarg{
+struct dfsState {
 	int* color;
 	int* d;
 	int* f;
 	int* p;
 };
 
-typedef struct DFSarg DFSarg_t;
+typedef struct dfsState dfsState_t;
 
 /* Struct that represents a node of a list of items */
 struct graph
@@ -49,7 +49,7 @@ void insertEdgeG(Graph G, Edge e);
 
 void removeEdgeG(Graph G, Edge e);
 
-DFSarg_t depthFirstSearchG(Graph G);
+dfsState_t dfsG(Graph G);
 
 void printG(Graph G);
 
