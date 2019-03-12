@@ -59,36 +59,36 @@ Edge createEdgeG(int u, int v)
 /* Function that inserts an edge in the graph.
  * Asymptotic complexity is O(1).
  *
- * g - Graph in which to insert an edge
+ * G - Graph in which to insert an edge
  * e - Edge to be inserted
  */
-void insertEdgeG(Graph g, Edge e)
+void insertEdgeG(Graph G, Edge e)
 {
 	int u = e.u;
 	int v = e.v;
 
-	g->adjacencies[u] = insertL(g->adjacencies[u], v);
-	g->adjacencies[v] = insertL(g->adjacencies[v], u);
-	g->E++;
+	G->adjacencies[u] = insertL(G->adjacencies[u], v);
+	G->adjacencies[v] = insertL(G->adjacencies[v], u);
+	G->E++;
 }
 
 /* Function that removes an edge from the graph.
  * Asymptotic complexity is O(V).
  *
- * g - Graph from which to remove an edge
+ * G - Graph from which to remove an edge
  * e - Edge to be removed
  */
-void removeEdgeG(Graph g, Edge e)
+void removeEdgeG(Graph G, Edge e)
 {
 	int u = e.u;
 	int v = e.v;
 
-	removeL(g->adjacencies[u], v);
-	removeL(g->adjacencies[v], u);
-	g->E--;
+	removeL(G->adjacencies[u], v);
+	removeL(G->adjacencies[v], u);
+	G->E--;
 }
 
-static void dfsVisitG(Graph g, int u,void* arg, int count)
+static void dfsVisitG(Graph G, int u,void* arg, int count)
 {
 	Link v;
   DFSarg_t* temp = (DFSarg_t*)arg;
@@ -96,14 +96,14 @@ static void dfsVisitG(Graph g, int u,void* arg, int count)
 	temp->d[u] = count++;
   puts("ffnuoanfoansdoaw");
   int i = 0;
-	for (v = g->adjacencies[u]; v!= NULL || i > 20; i++, v = g->adjacencies[u]->next)
+	for (v = G->adjacencies[u]; v!= NULL || i > 20; i++, v = G->adjacencies[u]->next)
 	{
-    printf("%d\n", g->adjacencies[u]->id);
-    //printf("%d\n", g->adjacencies[u]->next->id);
+    printf("%d\n", G->adjacencies[u]->id);
+    //printf("%d\n", G->adjacencies[u]->next->id);
 		if (temp->color[v->id] == WHITE)
 		{
 			temp->p[v->id] = u;
-			dfsVisitG(g, v->id, (void*)temp, count);
+			dfsVisitG(G, v->id, (void*)temp, count);
 		}
 
 		if (temp->color[v->id] == GRAY && temp->p[u] != v->id)
@@ -119,50 +119,66 @@ static void dfsVisitG(Graph g, int u,void* arg, int count)
 /* Function that applies a depth-first search to the given graph.
  * Asymptotic complexity is O(V + E).
  *
- * g - Graph to apply a dfs
+ * G - Graph to apply a dfs
  */
-DFSarg_t depthFirstSearchG(Graph g)
+DFSarg_t depthFirstSearchG(Graph G)
 {
-	int color[g->V+1]; /* Vertex visit states */
-	int d[g->V+1];     /* Discovery times */
-	int f[g->V+1];     /* Finish times */
-	int p[g->V+1];     /* Precedents */
+	int color[G->V+1]; /* Vertex visit states */
+	int d[G->V+1];     /* Discovery times */
+	int f[G->V+1];     /* Finish times */
+	int p[G->V+1];     /* Precedents */
   DFSarg_t temp= {color,d,f,p};
   puts("fuck scanf");
 	int u;
 	int count = 1; /* Time count of the algorithm */
 
-	for (u = 1; u < g->V+1; u++)
+	for (u = 1; u < G->V+1; u++)
 	{
 		color[u] = WHITE;
 		p[u] = -1;
 	}
-	for (u = 1; u < g->V+1; u++)
+	for (u = 1; u < G->V+1; u++)
 	{
     puts("cnacnancnacn");
 		if (color[u] == WHITE)
 		{
-			dfsVisitG(g, u,(void*)&temp, count);
+			dfsVisitG(G, u,(void*)&temp, count);
 		}
 	}
 
   return temp;
 }
 
-/* Function that frees a graph from memory, given a pointer to it.
- * Asymptotic complexity is O(E).
+/* Function that prints the adjacency list representing the given graph.
  *
- * g - Pointer to the graph to free from memory
+ * G - Graph to print
  */
-void freeG(Graph g)
+void printG(Graph G)
 {
 	int i;
 
-	for (i = 0; i < g->V; i++)
+	for (i = 0; i < G->V; i++)
 	{
-		freeL(g->adjacencies[i]);
+		printf("%d: ", i + 1);
+		printL(G->adjacencies[i]);
+	}
+	printf("\n");
+}
+
+/* Function that frees a graph from memory, given a pointer to it.
+ * Asymptotic complexity is O(E).
+ *
+ * G - Pointer to the graph to free from memory
+ */
+void freeG(Graph G)
+{
+	int i;
+
+	for (i = 0; i < G->V; i++)
+	{
+		freeL(G->adjacencies[i]);
 	}
 
-	free(g->adjacencies);
-	free(g);
+	free(G->adjacencies);
+	free(G);
 }

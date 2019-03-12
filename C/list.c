@@ -14,6 +14,7 @@
 
 /* Function that inserts an integer into a list, given its head.
  * Insertion is at the beginning of the list.
+ * Asymptotic complexity is O(1).
  * Returns a pointer to the inserted node so that the head can be updated.
  *
  * head - Pointer to the first element on the list
@@ -31,6 +32,7 @@ Link insertL(Link head, int id)
 
 /* Function responsible for removing an integer from a list, given its head.
  * The node of the list is also freed from memory.
+ * Asymptotic complexity is O(N).
  *
  * head - Pointer to the first element on the list
  * id   - Integer to be removed
@@ -56,6 +58,21 @@ void removeL(Link head, int id)
 			break;
 		}
 	}
+}
+
+/* Function that prints a list, given its head.
+ * Asymptotic complexity is O(N).
+ *
+ * head - Pointer to the head of the list to print
+ */
+void printL(Link head)
+{
+	Link t;
+	for (t = head; t; t = t->next)
+	{
+		printf("%d ", t->id);
+	}
+	printf("\n");
 }
 
 /* Function that frees a list from memory, given its head.

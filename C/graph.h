@@ -45,12 +45,14 @@ Graph initG(int V);
 
 Edge createEdgeG(int u, int v);
 
-void insertEdgeG(Graph g, Edge e);
+void insertEdgeG(Graph G, Edge e);
 
-void removeEdgeG(Graph g, Edge e);
+void removeEdgeG(Graph G, Edge e);
 
-DFSarg_t depthFirstSearchG(Graph g);
+DFSarg_t depthFirstSearchG(Graph G);
 
-void freeG(Graph g);
+void printG(Graph G);
+
+void freeG(Graph G);
 
 #endif
