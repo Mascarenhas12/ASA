@@ -6,7 +6,7 @@
 # Miguel Levezinho   - 90756
 
 proj1: proj1.o Network.o
-	g++ -o proj1 proj1.o Network.o
+	g++ -O3 -o proj1 proj1.o Network.o
 
 proj1.o: proj1.cpp Network.h
 	g++ -O3 -c proj1.cpp -o proj1.o
