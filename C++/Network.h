@@ -14,11 +14,10 @@ class Router{
     void addAdj(int id);
 };
 
-class Sub_Net{
+class Sub_Net : public Network{
   private:
     int maxID;
     std::forward_list<Router> critR;
-    std::forward_list<Router> nodes;
   public:
     Sub_Net();
     ~Sub_Net();
@@ -32,6 +31,7 @@ private:
 public:
   Network();
   ~Network();
+  void addRouter(Router r);
 };
 
 #endif

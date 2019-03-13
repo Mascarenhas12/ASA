@@ -3,21 +3,24 @@
 #include <iostream>
 #include <stdio.h>
 
-Network::Network(){
+Network::Network(int n): numSub(0), numNodes(n){
+  /*for(int i=0;i<numNodes;i++){
+    Router r(i);
+    this::addRouter(r);
+  }*/
   puts("Criei Network");
 }
-Sub_Net::Sub_Net(){
-  puts("Criei Sub_Net");
+
+void Network::addRouter(Router r){
+  //add to nodes list
 }
+
 Router::Router(int n): id(n){
   puts("Criei Router");
 }
 
 Network::~Network(){
   puts("Apaguei Network");
-}
-Sub_Net::~Sub_Net(){
-  puts("Apaguei Sub_Net");
 }
 
 int Router::getID(){

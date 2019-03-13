@@ -23,6 +23,7 @@ struct dfsState {
 	int* d;
 	int* f;
 	int* p;
+	int* low;
 };
 
 typedef struct dfsState dfsState_t;

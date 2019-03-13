@@ -13,6 +13,8 @@
 #include "graph.h"
 #include "list.h"
 
+#define MIN(a,b) (a<b?a:b)
+
 enum dfs_colors {
     WHITE = 0,
     GRAY  = 1,
@@ -91,24 +93,31 @@ void removeEdgeG(Graph G, Edge e)
 static int dfsVisitG(Graph G, int u, void* args, int count)
 {
 	Link v;
-
-  	dfsState_t* state = (dfsState_t*) args;
+  int numChildren=0;
+  dfsState_t* state = (dfsState_t*) args;
 	state->color[u-1] = GRAY;
 	state->d[u-1] = count++;
+  state->low[u-1] = state->d[u-1]; //low init
 
 	for (v = G->adjacencies[u-1]; v; v = v->next)
 	{
 		if (state->color[v->id-1] == WHITE)
 		{
+      numChildren++;
 			state->p[v->id-1] = u;
 			count = dfsVisitG(G, v->id, (void*) state, count);
+      state->low[u-1] = MIN(state->low[u-1],state->low[v->id-1]); //low child pull
 		}
 
-		if (state->color[v->id-1] == GRAY && state->p[u-1] != v->id)
+		if (state->color[v->id-1] == GRAY)
 		{
-			/* Its a B-Edge */
+     state->low[u-1] = MIN(state->low[u-1],state->low[v->id-1]); //low ancestor/parent pull
 		}
 	}
+
+  if(state->p[u-1]==-1 && numChildren > 1){//root with 2 children
+    //Its a cut vertex TODO struct cut vertex
+  }
 
 	state->color[u-1] = BLACK;
 	state->f[u-1] = count++;
@@ -126,8 +135,9 @@ dfsState_t dfsG(Graph G)
 	int d[G->V];     /* Discovery times */
 	int f[G->V];     /* Finish times */
 	int p[G->V];     /* Precedents */
+  int low[G->V];   /* Low*/
 
-  	dfsState_t state = {color, d, f, p};
+  dfsState_t state = {color, d, f, p, low};
 
 	int u;		   /* Vertex id */
 	int count = 1;   /* Time count of the algorithm */
@@ -143,7 +153,14 @@ dfsState_t dfsG(Graph G)
 		{
 			count = dfsVisitG(G, u, (void*) &state, count);
 		}
+    //TODO contador numero de subredes
 	}
+
+  for (u=1;u<=G->V;u++){
+    if(p[u-1] != -1 && (low[p[u-1]-1] < low[u-1])){
+      //Its a cut vertex TODO struct cut vertex
+    }
+  }
 	/* ********** DFS DEBUG ********** */
 	printf("\n***** DFS State *****\n");
 	for (u = 1; u <= G->V; u++)
