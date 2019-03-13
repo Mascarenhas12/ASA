@@ -1,9 +1,11 @@
-/* IST LEIC-T Analise e Sintese de Algoritmos 18/19
+/* ================================================
+ * IST LEIC-T Analise e Sintese de Algoritmos 18/19
  * Project 1 - graph.c
  *
  * Authors:
  * Manuel Mascarenhas - 90751
  * Miguel Levezinho   - 90756
+ * ================================================
  */
 
 #include <stdio.h>
@@ -91,74 +93,81 @@ void removeEdgeG(Graph G, Edge e)
 	G->E--;
 }
 
-/* Auxiliary function that visits a vertex during a depth-first search.
+/* Auxiliary function of doAuditG() that visits a vertex during a DFS.
  * Returns the time count of each step of the algorithom.
  *
- * G     - Graph to apply a dfs
- * u     - Vertex to visit
- * args  - State variables of the DFS
- * count - Time count of the algorithm
+ * G      - Graph to apply a dfs
+ * u      - Vertex to visit
+ * args   - State variables of the DFS
+ * count  - Time count of the algorithm
+ * output - Points to the struct that will store the asked audit info
  */
-static int dfsVisitG(Graph G, int u, void* args, int count, DFSoutput_t* output)
+static int dfsVisitG(Graph G, int u, void* args, int count, Audit output)
 {
 	Link t;
 	int v;
 
-  dfsState_t* state = (dfsState_t*) args; /* Pointer to the DFS state */
+	dfsState_t* state = (dfsState_t*) args; /* Pointer to the DFS state */
 
 	state->color[u-1] = GRAY;  /* Mark vertex u has visited */
 	state->d[u-1] = count;	   /* Mark discovery time of vertex u */
-  	state->low[u-1] = count++; /* Mark initial low value of vertex u */
+	state->low[u-1] = count++; /* Mark initial low value of vertex u */
 
-  	int numChildren = 0; /* Will store the children of u in the DFS tree */
+	int numChildren = 0; /* Will store the children of u in the DFS tree */
 
 	for (t = G->adjacencies[u-1], v = t->id; t; t = t->next, v = t->id)
 	{
 		if (state->color[v-1] == WHITE)
 		{
-      		numChildren++;
+			numChildren++;
 			state->p[v-1] = u;
 			count = dfsVisitG(G, v, (void*) state, count, output);
 
-			// Peeks at the finalized child and pulls its low if its smaller
-      		state->low[u-1] = MIN(state->low[u-1], state->low[v-1]);
+			// Peeks at the finalized (Black) child vertex and retrieves its low if its smaller
+			state->low[u-1] = MIN(state->low[u-1], state->low[v-1]);
 		}
 
 		if (state->color[v-1] == GRAY)
 		{
-			// Peeks at the parent/ancestor vertex and pulls its low if its smaller
-     		state->low[u-1] = MIN(state->low[u-1], state->low[v-1]);
+			// Peeks at the parent/ancestor vertex and retrieves its low if its smaller
+			state->low[u-1] = MIN(state->low[u-1], state->low[v-1]);
 		}
 	}
 
-	// If u is the root of a DFS tree and has more than two vertices, its a cut vertice
-  	if (state->p[u-1] == NIL && numChildren > 1)
-  	{
-      output->numCut++;
-      output->cut[u-1] = 1;
-  	}
+	// If u is the root of a DFS tree and has more than two child vertices, its a cut vertice
+	if (state->p[u-1] == NIL && numChildren > 1)
+	{
+		output->numCutV++;
+		output->cutV[u-1] = 1;
+	}
 
 	state->color[u-1] = BLACK;
 	return count;
 }
 
-/* Function that applies a depth-first search to the given graph to find cut vertices.
+/* Function that applies a depth-first search to the given graph to find:
+ * - The number of sub-graphs
+ * - The ID of each sub-graph
+ * - The number of cut vertices
+ * - The IDs of the cut vertices
+ *
  * This DFS is based on the Torjan algorithom, that finds strongly-connected components,
  * but applied to a undirected graph.
- * The SCCs will be of the resultant DFS forest, and cut vertices can be detected on
+ * The SCCs will be of the resultant DFS forest, and some cut vertices can be detected on
  * the transitions between SCCs.
  * Asymptotic complexity is O(V + E).
  *
- * G - Graph to apply a dfs
+ * G      - Graph to apply a dfs
+ * output - Points to the struct that will store the above graph info
  */
-void dfsG(Graph G, DFSoutput_t* output)
+void doAuditG(Graph G, Audit output)
 {
 	int color[G->V]; /* Vertex visit states */
 	int d[G->V];     /* Discovery times */
 	int p[G->V];     /* Precedents */
-  int low[G->V];   /* Lowest d[u] within a SCC of the DFS forest */
+	int low[G->V];   /* Lowest d[u] within a SCC of the DFS forest */
 
-  dfsState_t state = {color, d, p, low}; /* DFS state variables declaration */
+	dfsState_t state = {color, d, p, low}; /* DFS state variables declaration */
 
 	int u;		   /* Vertex id */
 	int count = 1; /* Time count of the algorithm */
@@ -167,32 +176,32 @@ void dfsG(Graph G, DFSoutput_t* output)
 	{
 		color[u-1] = WHITE;
 		p[u-1] = NIL;
+		output->cutV[u-1] = 0;
 	}
 	for (u = 1; u <= G->V; u++)
 	{
 		if (color[u-1] == WHITE)
 		{
-      output->numSubNet++;
+			output->numSubNets++;
 			count = dfsVisitG(G, u, (void*) &state, count, output);
 		}
 	}
 
-  	for (u = 1; u <= G->V; u++)
-  	{
-    	if (p[u-1] != NIL && (low[p[u-1]-1] < low[u-1]))
-    	{
-        if(!output->cut[u-1]){//Mark as cut if not already marked
-          output->numCut++;
-          output->cut[u-1] = 1;
-        }
-    	}
-  	}
+	for (u = 1; u <= G->V; u++)
+	{
+		// If u is not the root of a DFS tree and has a greater low than the parents low, its a cut vertice
+		if (p[u-1] != NIL && (low[p[u-1]-1] < low[u-1]) && !output->cutV[p[u-1]-1])
+		{
+			output->numCutV++;
+			output->cutV[p[u-1]-1] = 1;
+		}
+	}
 	/* ********** DFS DEBUG ********** */
 	printf("*************** DFS State ***************\n");
 	for (u = 1; u <= G->V; u++)
 	{
 		printf("%.2d: ", u);
-		printf("color=%d d[%.2d]=%-2d low[%.2d]=%-2d p[%.2d]=%-2d", color[u-1], u-1, d[u-1], u-1, low[u-1], u-1, p[u-1]);
+		printf("color=%d d[%.2d]=%-2d low[%.2d]=%-2d p[%.2d]=%-2d cutV[%.2d]=%-2d", color[u-1], u-1, d[u-1], u-1, low[u-1], u-1, p[u-1], u-1, output->cutV[u-1]);
 		printf("\n");
 	}
 	/* ********** DFS DEBUG ********** */

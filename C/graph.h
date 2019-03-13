@@ -20,24 +20,7 @@ struct edge
 	int v;
 };
 
-struct DFSoutput{
-	int numCut;
-	int numSubNet;
-	int* cut;
-};
-
-typedef struct DFSoutput DFSoutput_t;
-
-struct dfsState {
-	int* color;
-	int* d;
-	int* p;
-	int* low;
-};
-
-typedef struct dfsState dfsState_t;
-
-/* Struct that represents a node of a list of items */
+/* Struct that represents a graph */
 struct graph
 {
 	int V;
@@ -45,11 +28,32 @@ struct graph
 	Link *adjacencies;
 };
 
+/* Struct that represents an audit and stores its data */
+struct audit {
+	int numSubNets;
+	int numCutV;
+	int* cutV;
+};
+
+/* Struct that represents the state of a DFS, storing its relevant variables */
+struct dfsState {
+	int* color;
+	int* d;
+	int* p;
+	int* low;
+};
+
 /* Abstraction of the edge struct to a type Edge */
 typedef struct edge Edge;
 
-/* Abstraction of the graph struct to a type *Graph */
+/* Abstraction of the graph struct to a pointer type Graph */
 typedef struct graph *Graph;
+
+/* Abstraction of the audit struct to a pointer type Audit */
+typedef struct audit *Audit;
+
+/* Abstraction of the dfsState struct to a type dfsState_t */
+typedef struct dfsState dfsState_t;
 
 Graph initG(int V);
 
@@ -59,7 +63,7 @@ void insertEdgeG(Graph G, Edge e);
 
 void removeEdgeG(Graph G, Edge e);
 
-void dfsG(Graph G, DFSoutput_t* output);
+void doAuditG(Graph G, Audit output);
 
 void printG(Graph G);
 
