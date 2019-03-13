@@ -1,9 +1,11 @@
-/* IST LEIC-T Analise e Sintese de Algoritmos 18/19
+/* ================================================
+ * IST LEIC-T Analise e Sintese de Algoritmos 18/19
  * Project 1 - list.c
  *
  * Authors:
  * Manuel Mascarenhas - 90751
  * Miguel Levezinho   - 90756
+ * ================================================
  */
 
 #include <stdio.h>

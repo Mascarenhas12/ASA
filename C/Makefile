@@ -1,9 +1,11 @@
+# ================================================
 # IST LEIC-T Analise e Sintese de Algoritmos 18/19
 # Project 1 - Makefile
 #
 # Authors:
 # Manuel Mascarenhas - 90751
 # Miguel Levezinho   - 90756
+# ================================================
 
 proj1: proj1.o graph.o list.o
 	gcc -o proj1 proj1.o graph.o list.o
