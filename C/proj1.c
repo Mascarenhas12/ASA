@@ -1,9 +1,11 @@
-/* IST LEIC-T Analise e Sintese de Algoritmos 18/19
+/* ================================================
+ * IST LEIC-T Analise e Sintese de Algoritmos 18/19
  * Project 1 - proj1.c
  *
  * Authors:
  * Manuel Mascarenhas - 90751
  * Miguel Levezinho   - 90756
+ * ================================================
  */
 
 #include <stdio.h>
@@ -41,10 +43,11 @@ int main()
 	}
 
 	/* ********** DEBUG ********** */
-	printf("\n***** ROUTER NETWORK *****\n");
-	printG(G);
+	//printf("***** ROUTER NETWORK *****\n");
+	//printG(G);
 	/* ********** DEBUG ********** */
 
+	//TODO passar struct* de info de cut vertices para funcao
 	dfsState_t state = dfsG(G);
 
 	return 0;

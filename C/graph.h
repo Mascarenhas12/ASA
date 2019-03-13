@@ -1,9 +1,11 @@
-/* IST LEIC-T Analise e Sintese de Algoritmos 18/19
+/* ================================================
+ * IST LEIC-T Analise e Sintese de Algoritmos 18/19
  * Project 1 - graph.h
  *
  * Authors:
  * Manuel Mascarenhas - 90751
  * Miguel Levezinho   - 90756
+ * ================================================
  */
 
 #ifndef GRAPH_H
@@ -21,7 +23,6 @@ struct edge
 struct dfsState {
 	int* color;
 	int* d;
-	int* f;
 	int* p;
 	int* low;
 };

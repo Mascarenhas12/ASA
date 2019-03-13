@@ -13,7 +13,8 @@
 #include "graph.h"
 #include "list.h"
 
-#define MIN(a,b) (a<b?a:b)
+#define NIL -1
+#define MIN(a, b) (a < b ? a : b)
 
 enum dfs_colors {
     WHITE = 0,
@@ -90,41 +91,61 @@ void removeEdgeG(Graph G, Edge e)
 	G->E--;
 }
 
+/* Auxiliary function that visits a vertex during a depth-first search.
+ * Returns the time count of each step of the algorithom.
+ *
+ * G     - Graph to apply a dfs
+ * u     - Vertex to visit
+ * args  - State variables of the DFS
+ * count - Time count of the algorithm
+ */
 static int dfsVisitG(Graph G, int u, void* args, int count)
 {
-	Link v;
-  int numChildren=0;
-  dfsState_t* state = (dfsState_t*) args;
-	state->color[u-1] = GRAY;
-	state->d[u-1] = count++;
-  state->low[u-1] = state->d[u-1]; //low init
+	Link t;
+	int v;
 
-	for (v = G->adjacencies[u-1]; v; v = v->next)
+  	dfsState_t* state = (dfsState_t*) args; /* Pointer to the DFS state */
+
+	state->color[u-1] = GRAY;  /* Mark vertex u has visited */
+	state->d[u-1] = count;	   /* Mark discovery time of vertex u */
+  	state->low[u-1] = count++; /* Mark initial low value of vertex u */
+
+  	int numChildren = 0; /* Will store the children of u in the DFS tree */
+
+	for (t = G->adjacencies[u-1], v = t->id; t; t = t->next, v = t->id)
 	{
-		if (state->color[v->id-1] == WHITE)
+		if (state->color[v-1] == WHITE)
 		{
-      numChildren++;
-			state->p[v->id-1] = u;
-			count = dfsVisitG(G, v->id, (void*) state, count);
-      state->low[u-1] = MIN(state->low[u-1],state->low[v->id-1]); //low child pull
+      		numChildren++;
+			state->p[v-1] = u;
+			count = dfsVisitG(G, v, (void*) state, count);
+
+			// Peeks at the finalized child and pulls its low if its smaller
+      		state->low[u-1] = MIN(state->low[u-1], state->low[v-1]);
 		}
 
-		if (state->color[v->id-1] == GRAY)
+		if (state->color[v-1] == GRAY)
 		{
-     state->low[u-1] = MIN(state->low[u-1],state->low[v->id-1]); //low ancestor/parent pull
+			// Peeks at the parent/ancestor vertex and pulls its low if its smaller
+     		state->low[u-1] = MIN(state->low[u-1], state->low[v-1]);
 		}
 	}
 
-  if(state->p[u-1]==-1 && numChildren > 1){//root with 2 children
-    //Its a cut vertex TODO struct cut vertex
-  }
+	// If u is the root of a DFS tree and has more than two vertices, its a cut vertice
+  	if (state->p[u-1] == NIL && numChildren > 1)
+  	{
+    	//TODO mark cut vertex in struct of cut vertices
+  	}
 
 	state->color[u-1] = BLACK;
-	state->f[u-1] = count++;
 	return count;
 }
 
-/* Function that applies a depth-first search to the given graph.
+/* Function that applies a depth-first search to the given graph to find cut vertices.
+ * This DFS is based on the Torjan algorithom, that finds strongly-connected components,
+ * but applied to a undirected graph.
+ * The SCCs will be of the resultant DFS forest, and cut vertices can be detected on
+ * the transitions between SCCs.
  * Asymptotic complexity is O(V + E).
  *
  * G - Graph to apply a dfs
@@ -133,43 +154,48 @@ dfsState_t dfsG(Graph G)
 {
 	int color[G->V]; /* Vertex visit states */
 	int d[G->V];     /* Discovery times */
-	int f[G->V];     /* Finish times */
 	int p[G->V];     /* Precedents */
-  int low[G->V];   /* Low*/
+  	int low[G->V];   /* Lowest d[u] within a SCC of the DFS forest */
 
-  dfsState_t state = {color, d, f, p, low};
+  	dfsState_t state = {color, d, p, low}; /* DFS state variables declaration */
 
 	int u;		   /* Vertex id */
-	int count = 1;   /* Time count of the algorithm */
+	int count = 1; /* Time count of the algorithm */
 
 	for (u = 1; u <= G->V; u++)
 	{
 		color[u-1] = WHITE;
-		p[u-1] = -1;
+		p[u-1] = NIL;
 	}
 	for (u = 1; u <= G->V; u++)
 	{
+		//TODO contador de subredes
 		if (color[u-1] == WHITE)
 		{
 			count = dfsVisitG(G, u, (void*) &state, count);
 		}
-    //TODO contador numero de subredes
 	}
 
-  for (u=1;u<=G->V;u++){
-    if(p[u-1] != -1 && (low[p[u-1]-1] < low[u-1])){
-      //Its a cut vertex TODO struct cut vertex
-    }
-  }
+  	for (u = 1; u <= G->V; u++)
+  	{
+  		//TODO garantir que u nao e marcado varias vezes!
+    	if (p[u-1] != NIL && (low[p[u-1]-1] < low[u-1]))
+    	{
+      		//TODO mark cut vertex in struct of cut vertices
+    	}
+  	}
 	/* ********** DFS DEBUG ********** */
-	printf("\n***** DFS State *****\n");
+	printf("*************** DFS State ***************\n");
 	for (u = 1; u <= G->V; u++)
 	{
 		printf("%.2d: ", u);
-		printf("color=%d d[%.2d]=%-2d f[%.2d]=%-2d p[%.2d]=%-2d", color[u-1], u-1, d[u-1], u-1, f[u-1], u-1, p[u-1]);
+		printf("color=%d d[%.2d]=%-2d low[%.2d]=%-2d p[%.2d]=%-2d", color[u-1], u-1, d[u-1], u-1, low[u-1], u-1, p[u-1]);
 		printf("\n");
 	}
 	/* ********** DFS DEBUG ********** */
+
+	//TODO return not working, get rid of this struct???
+	//     Not needed outside this function after all
   	return state;
 }
 
