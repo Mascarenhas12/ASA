@@ -48,7 +48,11 @@ int main()
 	/* ********** DEBUG ********** */
 
 	//TODO passar struct* de info de cut vertices para funcao
-	dfsState_t state = dfsG(G);
+	DFSoutput_t* output = (DFSoutput_t*)malloc(sizeof(struct DFSoutput));
+	output->numCut = 0;
+	output->numSubNet = 0;
+	output->cut = (int*)malloc(sizeof(int)*G->V);
+	dfsG(G, output);
 
 	return 0;
 }

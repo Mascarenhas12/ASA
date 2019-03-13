@@ -20,6 +20,14 @@ struct edge
 	int v;
 };
 
+struct DFSoutput{
+	int numCut;
+	int numSubNet;
+	int* cut;
+};
+
+typedef struct DFSoutput DFSoutput_t;
+
 struct dfsState {
 	int* color;
 	int* d;
@@ -51,7 +59,7 @@ void insertEdgeG(Graph G, Edge e);
 
 void removeEdgeG(Graph G, Edge e);
 
-dfsState_t dfsG(Graph G);
+void dfsG(Graph G, DFSoutput_t* output);
 
 void printG(Graph G);
 

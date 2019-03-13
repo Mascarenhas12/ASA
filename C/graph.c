@@ -99,12 +99,12 @@ void removeEdgeG(Graph G, Edge e)
  * args  - State variables of the DFS
  * count - Time count of the algorithm
  */
-static int dfsVisitG(Graph G, int u, void* args, int count)
+static int dfsVisitG(Graph G, int u, void* args, int count, DFSoutput_t* output)
 {
 	Link t;
 	int v;
 
-  	dfsState_t* state = (dfsState_t*) args; /* Pointer to the DFS state */
+  dfsState_t* state = (dfsState_t*) args; /* Pointer to the DFS state */
 
 	state->color[u-1] = GRAY;  /* Mark vertex u has visited */
 	state->d[u-1] = count;	   /* Mark discovery time of vertex u */
@@ -118,7 +118,7 @@ static int dfsVisitG(Graph G, int u, void* args, int count)
 		{
       		numChildren++;
 			state->p[v-1] = u;
-			count = dfsVisitG(G, v, (void*) state, count);
+			count = dfsVisitG(G, v, (void*) state, count, output);
 
 			// Peeks at the finalized child and pulls its low if its smaller
       		state->low[u-1] = MIN(state->low[u-1], state->low[v-1]);
@@ -134,7 +134,8 @@ static int dfsVisitG(Graph G, int u, void* args, int count)
 	// If u is the root of a DFS tree and has more than two vertices, its a cut vertice
   	if (state->p[u-1] == NIL && numChildren > 1)
   	{
-    	//TODO mark cut vertex in struct of cut vertices
+      output->numCut++;
+      output->cut[u-1] = 1;
   	}
 
 	state->color[u-1] = BLACK;
@@ -150,14 +151,14 @@ static int dfsVisitG(Graph G, int u, void* args, int count)
  *
  * G - Graph to apply a dfs
  */
-dfsState_t dfsG(Graph G)
+void dfsG(Graph G, DFSoutput_t* output)
 {
 	int color[G->V]; /* Vertex visit states */
 	int d[G->V];     /* Discovery times */
 	int p[G->V];     /* Precedents */
-  	int low[G->V];   /* Lowest d[u] within a SCC of the DFS forest */
+  int low[G->V];   /* Lowest d[u] within a SCC of the DFS forest */
 
-  	dfsState_t state = {color, d, p, low}; /* DFS state variables declaration */
+  dfsState_t state = {color, d, p, low}; /* DFS state variables declaration */
 
 	int u;		   /* Vertex id */
 	int count = 1; /* Time count of the algorithm */
@@ -169,19 +170,21 @@ dfsState_t dfsG(Graph G)
 	}
 	for (u = 1; u <= G->V; u++)
 	{
-		//TODO contador de subredes
 		if (color[u-1] == WHITE)
 		{
-			count = dfsVisitG(G, u, (void*) &state, count);
+      output->numSubNet++;
+			count = dfsVisitG(G, u, (void*) &state, count, output);
 		}
 	}
 
   	for (u = 1; u <= G->V; u++)
   	{
-  		//TODO garantir que u nao e marcado varias vezes!
     	if (p[u-1] != NIL && (low[p[u-1]-1] < low[u-1]))
     	{
-      		//TODO mark cut vertex in struct of cut vertices
+        if(!output->cut[u-1]){//Mark as cut if not already marked
+          output->numCut++;
+          output->cut[u-1] = 1;
+        }
     	}
   	}
 	/* ********** DFS DEBUG ********** */
@@ -193,10 +196,6 @@ dfsState_t dfsG(Graph G)
 		printf("\n");
 	}
 	/* ********** DFS DEBUG ********** */
-
-	//TODO return not working, get rid of this struct???
-	//     Not needed outside this function after all
-  	return state;
 }
 
 /* Function that prints the adjacency list representing the given graph.
