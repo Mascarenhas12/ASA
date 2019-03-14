@@ -17,9 +17,10 @@
 
 #define MIN_ROUTER_NUM 2
 #define MIN_CONNECTION_NUM 1
+#define NIL -1
 
 Audit initNetAudit(Graph G);
-void printAudit(Audit output);
+void printAudit(Audit output, Graph G);
 void freeAudit(Audit a);
 
 int main()
@@ -50,9 +51,12 @@ int main()
 
 	output = initNetAudit(G);
 
-	doAuditG(G, output);
+	puts("luigi");
+	doAuditG(G, output);//CHANGED
+	puts("waluigi");
+	biggestNetSizeAudit(G, output);
 	//TODO new DFS func that calcs biggest net size
-	printAudit(output);
+	printAudit(output,G);
 
 	return 0;
 }
@@ -62,14 +66,17 @@ int main()
  *
  * G - Graph in which the audit will be made
  */
-Audit initNetAudit(Graph G)
+
+Audit initNetAudit(Graph G)//CHANGED
 {
 	Audit new = (Audit) malloc(sizeof(struct audit));
 
 	new->numSubNets = 0;
+	new->numBNet = 0;
 	new->numCutV = 0;
+	new->biggestV = 0;
 	new->cutV = (int*) malloc(sizeof(int) * G->V);
-
+	new->subBigV = (int*) malloc(sizeof(int) * G->V);
 	return new;
 }
 
@@ -77,11 +84,15 @@ Audit initNetAudit(Graph G)
  *
  * output - Points to the struct that stores the audit info
  */
-void printAudit(Audit output)
+void printAudit(Audit output, Graph G)
 {
 	printf("%d\n", output->numSubNets);
-	//TODO sub net IDs
+	for(int i=0;i<G->V;i++){
+		if(output->subBigV[i] != NIL)
+			printf("%d \n", output->subBigV[i]);
+	}
 	printf("%d\n", output->numCutV);
+	printf("%d\n", output->numBNet);
 	//TODO Biggest net size
 }
 
@@ -92,12 +103,6 @@ void printAudit(Audit output)
 void freeAudit(Audit a)
 {
 	free(a->cutV);
+	free(a->subBigV);
 	free(a);
 }
-
-
-
-
-
-
-

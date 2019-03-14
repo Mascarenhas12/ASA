@@ -31,8 +31,11 @@ struct graph
 /* Struct that represents an audit and stores its data */
 struct audit {
 	int numSubNets;
+	int numBNet;
 	int numCutV;
+	int biggestV;
 	int* cutV;
+	int* subBigV;
 };
 
 /* Struct that represents the state of a DFS, storing its relevant variables */
@@ -64,6 +67,8 @@ void insertEdgeG(Graph G, Edge e);
 void removeEdgeG(Graph G, Edge e);
 
 void doAuditG(Graph G, Audit output);
+
+void biggestNetSizeAudit(Graph G, Audit output);
 
 void printG(Graph G);
 
