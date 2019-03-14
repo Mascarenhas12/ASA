@@ -51,11 +51,8 @@ int main()
 
 	output = initNetAudit(G);
 
-	puts("luigi");
-	doAuditG(G, output);//CHANGED
-	puts("waluigi");
+	doAuditG(G, output);
 	biggestNetSizeAudit(G, output);
-	//TODO new DFS func that calcs biggest net size
 	printAudit(output,G);
 
 	return 0;
@@ -67,7 +64,7 @@ int main()
  * G - Graph in which the audit will be made
  */
 
-Audit initNetAudit(Graph G)//CHANGED
+Audit initNetAudit(Graph G)
 {
 	Audit new = (Audit) malloc(sizeof(struct audit));
 
@@ -86,14 +83,20 @@ Audit initNetAudit(Graph G)//CHANGED
  */
 void printAudit(Audit output, Graph G)
 {
+	int i;
+
 	printf("%d\n", output->numSubNets);
-	for(int i=0;i<G->V;i++){
-		if(output->subBigV[i] != NIL)
-			printf("%d \n", output->subBigV[i]);
+
+	for (i = 0; i < G->V; i++)
+	{
+		if (output->subBigV[i] != NIL)
+		{
+			printf("%d ", output->subBigV[i]);
+		}
 	}
-	printf("%d\n", output->numCutV);
+
+	printf("\n%d\n", output->numCutV);
 	printf("%d\n", output->numBNet);
-	//TODO Biggest net size
 }
 
 /* Function that frees the audit info.

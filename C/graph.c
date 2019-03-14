@@ -118,23 +118,16 @@ static int dfsVisitG(Graph G, int u, void* args, int count, Audit output)
 
 	for (t = G->adjacencies[u-1], v = t->id; t; t = t->next, v = t->id)
 	{
-    puts("daisy");
 		if (state->color[v-1] == WHITE)
 		{
 			numChildren++;
 			state->p[v-1] = u;
-      puts("wtf");
-      output->biggestV = MAX(output->biggestV,v);
-      puts("waaaaaaa");
+			output->biggestV = MAX(output->biggestV,v);
 			count = dfsVisitG(G, v, (void*) state, count, output);
-      puts("Okidoki");
 
 			// Peeks at the finalized (Black) child vertex and retrieves its low if its smaller
 			state->low[u-1] = MIN(state->low[u-1], state->low[v-1]);
 		}
-
-    puts("peach");
-    printf("%d\n", u);
 
 		if (state->color[v-1] == GRAY)
 		{
@@ -185,7 +178,7 @@ void doAuditG(Graph G, Audit output)
 		color[u-1] = WHITE;
 		p[u-1] = NIL;
 		output->cutV[u-1] = 0;
-    output->subBigV[u-1] = NIL;
+		output->subBigV[u-1] = NIL;
 	}
 
 	for (u = 1; u <= G->V; u++)
@@ -193,12 +186,11 @@ void doAuditG(Graph G, Audit output)
 		if (color[u-1] == WHITE)
 		{
 			output->numSubNets++;
-      output->biggestV = 0;
+			output->biggestV = 0;
 			count = dfsVisitG(G, u, (void*) &state, count, output);
-      puts("letsa go");
-      output->subBigV[output->biggestV-1] = output->biggestV;
-      puts("mamma mia");
-      //before next sub net search begins puts biggest vertex in subBigV
+
+			output->subBigV[output->biggestV-1] = output->biggestV;
+			//before next sub net search begins puts biggest vertex in subBigV
 		}
 	}
 
@@ -222,46 +214,43 @@ void doAuditG(Graph G, Audit output)
 	/* ********** DFS DEBUG ********** */
 }
 
-static int dfsVisit2(Graph G,int u,int* color,Audit output)
+static int dfsVisit2(Graph G,int u,int* color, int count, Audit output)
 {
-  Link t;
-  int v;
-  int count = 0;
+	Link t;
+	int v;
 
-  color[u-1] = GRAY;
+	color[u-1] = GRAY;
 
-  for (t = G->adjacencies[u-1], v = t->id; t; t = t->next, v = t->id)
+	for (t = G->adjacencies[u-1], v = t->id; t; t = t->next, v = t->id)
 	{
 		if (color[v-1] == WHITE && !output->cutV[v-1])
 		{
-      count++;
-			dfsVisit2(G, v, color, output);
+			count++;
+			count = dfsVisit2(G, v, color, count, output);
 		}
 	}
 
-  color[u-1] = BLACK;
-  return count;
+	color[u-1] = BLACK;
+	return count;
 }
 
 void biggestNetSizeAudit(Graph G, Audit output)
 {
-  int color[G->V]; /* Vertex visit states */
-  int count = 0;
-  int u;
+	int color[G->V]; /* Vertex visit states */
+	int count = 1;
+	int u;
 
-  puts("wario");
-
-  for (u = 1; u <= G->V; u++)
+	for (u = 1; u <= G->V; u++)
 	{
 		color[u-1] = WHITE;
 	}
 
-  for (u = 1; u <= G->V; u++)
+	for (u = 1; u <= G->V; u++)
 	{
 		if (color[u-1] == WHITE && !output->cutV[u-1])
 		{
-			count = dfsVisit2(G, u, color, output);
-      output->numBNet = MAX(output->numBNet,count);
+			count = dfsVisit2(G, u, color, count, output);
+			output->numBNet = MAX(output->numBNet, count);
 		}
 	}
 }
