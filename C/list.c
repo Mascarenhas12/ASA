@@ -32,8 +32,6 @@ Link insertL(Link head, int id)
 	return new;
 }
 
-//deadCode 1:
-
 /* *** Used for debugging only *** */
 /* Function that prints a list, given its head.
  * Asymptotic complexity is O(N).

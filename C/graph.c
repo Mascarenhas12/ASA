@@ -78,8 +78,6 @@ void insertEdgeG(Graph G, Edge e)
 	G->E++;
 }
 
-//deadCode 1:
-
 /* Auxiliary function of doTarjanSearchG() that visits a vertex during a DFS.
  * Returns the time count of each step of the algorithom.
  *
@@ -110,18 +108,24 @@ static int tarjanVisitG(Graph G, int u, void* args, int count, Audit output)
 			output->netID = MAX(output->netID, v->id);
 			count = tarjanVisitG(G, v->id, (void*) state, count, output);
 
-			// Peeks at the finalized (Black) child vertex and retrieves its low if its smaller
+			/* Peeks at the finalized (Black) child vertex and retrieves its low if its smaller */
 			state->low[u-1] = MIN(state->low[u-1], state->low[v->id-1]);
+
+			if (state->p[u-1] != NIL && state->low[v->id-1] >= state->d[u-1] && !output->cutV[u-1])
+			{
+				output->numCutV++;
+				output->cutV[u-1] = 1;
+			}
 		}
 
-		if (state->color[v->id-1] == GRAY)
+		if (state->color[v->id-1] == GRAY && state->p[u-1] != v->id)
 		{
-			// Peeks at the parent/ancestor vertex and retrieves its low if its smaller
-			state->low[u-1] = MIN(state->low[u-1], state->low[v->id-1]);
+			/* Peeks at the ancestor vertex and retrieves its discovery if its smaller */
+			state->low[u-1] = MIN(state->low[u-1], state->d[v->id-1]);
 		}
 	}
 
-	// If u is the root of a DFS tree and has more than two child vertices, its a cut vertice
+	/* If u is the root of a DFS tree and has more than two child vertices, its a cut vertice */
 	if (state->p[u-1] == NIL && numChildren > 1)
 	{
 		output->numCutV++;
@@ -174,25 +178,14 @@ void doTarjanSearchG(Graph G, Audit output)
 		if (color[u-1] == WHITE)
 		{
 			output->numSubNets++;
-			output->netID = 0;
+			output->netID = u;
 
 			count = tarjanVisitG(G, u, (void*) &state, count, output);
 
-			//before next sub graph search begins, puts biggest vertex found in subNetIDs
+			/* Before next sub graph search begins, puts biggest vertex found in subNetIDs */
 			output->subNetIDs[output->netID-1] = output->netID;
 		}
 	}
-
-	for (u = 1; u <= G->V; u++)
-	{
-		// If u is not the root of a DFS tree and has a greater low than the parents low, its a cut vertice
-		if (p[u-1] != NIL && (low[p[u-1]-1] < low[u-1]) && !output->cutV[p[u-1]-1])
-		{
-			output->numCutV++;
-			output->cutV[p[u-1]-1] = 1;
-		}
-	}
- //deadCode 2:
 }
 
 /* Auxiliary function of doDFS_G() that visits a vertex during a DFS.
@@ -201,7 +194,7 @@ void doTarjanSearchG(Graph G, Audit output)
  * G            - Graph to apply a dfs
  * u            - Vertex to visit
  * color        - Vertex visit states
- * numVertices  - Current number of vertices in  sub-graph
+ * numVertices  - Current number of vertices in sub-graph
  * output       - Points to the struct that will store the above graph info
  */
 static int dfsVisitG(Graph G, int u, int* color, int numVertices, Audit output)
@@ -252,6 +245,7 @@ void doDFS_G(Graph G, Audit output)
 		{
 			numVertices = dfsVisitG(G, u, color, numVertices, output);
 			output->maxNetSize = MAX(output->maxNetSize, numVertices);
+			numVertices = 1;
 		}
 	}
 }

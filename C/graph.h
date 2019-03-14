@@ -64,8 +64,6 @@ Edge createEdgeG(int u, int v);
 
 void insertEdgeG(Graph G, Edge e);
 
-void removeEdgeG(Graph G, Edge e);
-
 void doDFS_G(Graph G, Audit output);
 
 void doTarjanSearchG(Graph G, Audit output);
