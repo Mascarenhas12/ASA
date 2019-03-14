@@ -19,8 +19,9 @@
 #define MIN_CONNECTION_NUM 1
 #define NIL -1
 
-Audit initNetAudit(Graph G);
-void printAudit(Audit output, Graph G);
+Audit initAudit(Graph G);
+void doAudit(Graph G, Audit output);
+void printAudit(Graph G, Audit output);
 void freeAudit(Audit a);
 
 int main()
@@ -36,10 +37,14 @@ int main()
 	int i;
 
 	if (!scanf("%d", &V) || V < MIN_ROUTER_NUM)
+	{
 		printf("Invalid number of routers!\n");
+	}
 
 	if (!scanf("%d", &E) || E < MIN_CONNECTION_NUM)
+	{
 		printf("Invalid number of connections!\n");
+	}
 
 	G = initG(V);
 
@@ -49,11 +54,14 @@ int main()
 		insertEdgeG(G, createEdgeG(u, v));
 	}
 
-	output = initNetAudit(G);
+	output = initAudit(G);
 
-	doAuditG(G, output);
-	biggestNetSizeAudit(G, output);
-	printAudit(output,G);
+	doAudit(G, output);
+
+	printAudit(G, output);
+
+	freeAudit(output);
+	freeG(G);
 
 	return 0;
 }
@@ -63,40 +71,54 @@ int main()
  *
  * G - Graph in which the audit will be made
  */
-
-Audit initNetAudit(Graph G)
+Audit initAudit(Graph G)
 {
 	Audit new = (Audit) malloc(sizeof(struct audit));
 
 	new->numSubNets = 0;
-	new->numBNet = 0;
+	new->netID = 0;
+	new->subNetIDs = (int*) malloc(sizeof(int) * G->V);
 	new->numCutV = 0;
-	new->biggestV = 0;
 	new->cutV = (int*) malloc(sizeof(int) * G->V);
-	new->subBigV = (int*) malloc(sizeof(int) * G->V);
+	new->maxNetSize = 0;
 	return new;
+}
+
+void doAudit(Graph G, Audit output)
+{
+	doTarjanSearchG(G, output);
+	doDFS_G(G, output);
 }
 
 /* Function that prints the audit info.
  *
  * output - Points to the struct that stores the audit info
  */
-void printAudit(Audit output, Graph G)
+void printAudit(Graph G, Audit output)
 {
 	int i;
+	int flag = 0;
 
 	printf("%d\n", output->numSubNets);
 
 	for (i = 0; i < G->V; i++)
 	{
-		if (output->subBigV[i] != NIL)
+		if (output->subNetIDs[i] != NIL)
 		{
-			printf("%d ", output->subBigV[i]);
+			if (!flag)
+			{
+				printf("%d", output->subNetIDs[i]);
+				flag = 1;
+			}
+			else
+			{
+				printf(" %d", output->subNetIDs[i]);
+			}
 		}
 	}
 
 	printf("\n%d\n", output->numCutV);
-	printf("%d\n", output->numBNet);
+	printf("%d\n", output->maxNetSize);
 }
 
 /* Function that frees the audit info.
@@ -105,7 +127,7 @@ void printAudit(Audit output, Graph G)
  */
 void freeAudit(Audit a)
 {
+	free(a->subNetIDs);
 	free(a->cutV);
-	free(a->subBigV);
 	free(a);
 }

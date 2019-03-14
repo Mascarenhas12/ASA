@@ -78,6 +78,7 @@ void insertEdgeG(Graph G, Edge e)
 	G->E++;
 }
 
+/* *** Not used *** */
 /* Function that removes an edge from the graph.
  * Asymptotic complexity is O(V).
  *
@@ -94,19 +95,18 @@ void removeEdgeG(Graph G, Edge e)
 	G->E--;
 }
 
-/* Auxiliary function of doAuditG() that visits a vertex during a DFS.
+/* Auxiliary function of doTarjanSearchG() that visits a vertex during a DFS.
  * Returns the time count of each step of the algorithom.
  *
  * G      - Graph to apply a dfs
  * u      - Vertex to visit
  * args   - State variables of the DFS
  * count  - Time count of the algorithm
- * output - Points to the struct that will store the asked audit info
+ * output - Points to the struct that will store the above graph info
  */
-static int dfsVisitG(Graph G, int u, void* args, int count, Audit output)
+static int tarjanVisitG(Graph G, int u, void* args, int count, Audit output)
 {
-	Link t;
-	int v;
+	Link v;
 
 	dfsState_t* state = (dfsState_t*) args; /* Pointer to the DFS state */
 
@@ -116,23 +116,23 @@ static int dfsVisitG(Graph G, int u, void* args, int count, Audit output)
 
 	int numChildren = 0; /* Will store the children of u in the DFS tree */
 
-	for (t = G->adjacencies[u-1], v = t->id; t; t = t->next, v = t->id)
+	for (v = G->adjacencies[u-1]; v; v = v->next)
 	{
-		if (state->color[v-1] == WHITE)
+		if (state->color[v->id-1] == WHITE)
 		{
 			numChildren++;
-			state->p[v-1] = u;
-			output->biggestV = MAX(output->biggestV,v);
-			count = dfsVisitG(G, v, (void*) state, count, output);
+			state->p[v->id-1] = u;
+			output->netID = MAX(output->netID, v->id);
+			count = tarjanVisitG(G, v->id, (void*) state, count, output);
 
 			// Peeks at the finalized (Black) child vertex and retrieves its low if its smaller
-			state->low[u-1] = MIN(state->low[u-1], state->low[v-1]);
+			state->low[u-1] = MIN(state->low[u-1], state->low[v->id-1]);
 		}
 
-		if (state->color[v-1] == GRAY)
+		if (state->color[v->id-1] == GRAY)
 		{
 			// Peeks at the parent/ancestor vertex and retrieves its low if its smaller
-			state->low[u-1] = MIN(state->low[u-1], state->low[v-1]);
+			state->low[u-1] = MIN(state->low[u-1], state->low[v->id-1]);
 		}
 	}
 
@@ -154,14 +154,14 @@ static int dfsVisitG(Graph G, int u, void* args, int count, Audit output)
  *
  * This DFS is based on the Torjan algorithom, that finds strongly-connected components,
  * but applied to a undirected graph.
- * The SCCs will be of the resultant DFS forest, and some cut vertices can be detected on
- * the transitions between SCCs.
+ * The SCCs will be of the resultant DFS forest.
+ * Cut vertices can be detected in the root or on the transitions between SCCs in this forest.
  * Asymptotic complexity is O(V + E).
  *
  * G      - Graph to apply a dfs
  * output - Points to the struct that will store the above graph info
  */
-void doAuditG(Graph G, Audit output)
+void doTarjanSearchG(Graph G, Audit output)
 {
 	int color[G->V]; /* Vertex visit states */
 	int d[G->V];     /* Discovery times */
@@ -176,9 +176,12 @@ void doAuditG(Graph G, Audit output)
 	for (u = 1; u <= G->V; u++)
 	{
 		color[u-1] = WHITE;
+		d[u-1] = NIL;
 		p[u-1] = NIL;
+		low[u-1] = NIL;
+
 		output->cutV[u-1] = 0;
-		output->subBigV[u-1] = NIL;
+		output->subNetIDs[u-1] = NIL;
 	}
 
 	for (u = 1; u <= G->V; u++)
@@ -186,11 +189,12 @@ void doAuditG(Graph G, Audit output)
 		if (color[u-1] == WHITE)
 		{
 			output->numSubNets++;
-			output->biggestV = 0;
-			count = dfsVisitG(G, u, (void*) &state, count, output);
+			output->netID = 0;
 
-			output->subBigV[output->biggestV-1] = output->biggestV;
-			//before next sub net search begins puts biggest vertex in subBigV
+			count = tarjanVisitG(G, u, (void*) &state, count, output);
+
+			//before next sub graph search begins, puts biggest vertex found in subNetIDs
+			output->subNetIDs[output->netID-1] = output->netID;
 		}
 	}
 
@@ -203,41 +207,62 @@ void doAuditG(Graph G, Audit output)
 			output->cutV[p[u-1]-1] = 1;
 		}
 	}
+
 	/* ********** DFS DEBUG ********** */
-	printf("*************** DFS State ***************\n");
-	for (u = 1; u <= G->V; u++)
-	{
-		printf("%.2d: ", u);
-		printf("color=%d d[%.2d]=%-2d low[%.2d]=%-2d p[%.2d]=%-2d cutV[%.2d]=%-2d", color[u-1], u-1, d[u-1], u-1, low[u-1], u-1, p[u-1], u-1, output->cutV[u-1]);
-		printf("\n");
-	}
+	// printf("*************** DFS State ***************\n");
+	// for (u = 1; u <= G->V; u++)
+	// {
+	// 	printf("%.2d: ", u);
+	// 	printf("color=%d d[%.2d]=%-2d low[%.2d]=%-2d p[%.2d]=%-2d cutV[%.2d]=%-2d", color[u-1], u-1, d[u-1], u-1, low[u-1], u-1, p[u-1], u-1, output->cutV[u-1]);
+	// 	printf("\n");
+	// }
 	/* ********** DFS DEBUG ********** */
 }
 
-static int dfsVisit2(Graph G,int u,int* color, int count, Audit output)
+/* Auxiliary function of doDFS_G() that visits a vertex during a DFS.
+ * Returns the number of vertices in the sub-graph being analised.
+ *
+ * G            - Graph to apply a dfs
+ * u            - Vertex to visit
+ * color        - Vertex visit states
+ * numVertices  - Current number of vertices in  sub-graph
+ * output       - Points to the struct that will store the above graph info
+ */
+static int dfsVisitG(Graph G, int u, int* color, int numVertices, Audit output)
 {
-	Link t;
-	int v;
+	Link v;
 
 	color[u-1] = GRAY;
 
-	for (t = G->adjacencies[u-1], v = t->id; t; t = t->next, v = t->id)
+	for (v = G->adjacencies[u-1]; v; v = v->next)
 	{
-		if (color[v-1] == WHITE && !output->cutV[v-1])
+		if (color[v->id-1] == WHITE && !output->cutV[v->id-1])
 		{
-			count++;
-			count = dfsVisit2(G, v, color, count, output);
+			numVertices++;
+			numVertices = dfsVisitG(G, v->id, color, numVertices, output);
 		}
 	}
 
 	color[u-1] = BLACK;
-	return count;
+	return numVertices;
 }
 
-void biggestNetSizeAudit(Graph G, Audit output)
+/* Function that applies a depth-first search to the given graph to find:
+ * - The biggest sub-graph after removal of all the cut vertices of the graph
+ * - The number of vertices of said sub-graph
+ *
+ * This DFS is based on the normal DFS algorithom, but much simpler.
+ * To get the info above, we only need to mantain the state of vertices. No find times needed.
+ * Asymptotic complexity is O(V + E).
+ *
+ * G      - Graph to apply a dfs
+ * output - Points to the struct that will store the above graph info
+ */
+void doDFS_G(Graph G, Audit output)
 {
-	int color[G->V]; /* Vertex visit states */
-	int count = 1;
+	int color[G->V]; 	 /* Vertex visit states */
+	int numVertices = 1; /* Will store the number of vertices in a sub-graph */
+
 	int u;
 
 	for (u = 1; u <= G->V; u++)
@@ -249,12 +274,13 @@ void biggestNetSizeAudit(Graph G, Audit output)
 	{
 		if (color[u-1] == WHITE && !output->cutV[u-1])
 		{
-			count = dfsVisit2(G, u, color, count, output);
-			output->numBNet = MAX(output->numBNet, count);
+			numVertices = dfsVisitG(G, u, color, numVertices, output);
+			output->maxNetSize = MAX(output->maxNetSize, numVertices);
 		}
 	}
 }
 
+/* *** Used for debugging only *** */
 /* Function that prints the adjacency list representing the given graph.
  *
  * G - Graph to print

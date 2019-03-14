@@ -32,6 +32,7 @@ Link insertL(Link head, int id)
 	return new;
 }
 
+/* *** Not used *** */
 /* Function responsible for removing an integer from a list, given its head.
  * The node of the list is also freed from memory.
  * Asymptotic complexity is O(N).
@@ -62,6 +63,7 @@ void removeL(Link head, int id)
 	}
 }
 
+/* *** Used for debugging only *** */
 /* Function that prints a list, given its head.
  * Asymptotic complexity is O(N).
  *

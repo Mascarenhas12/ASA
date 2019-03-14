@@ -14,15 +14,15 @@
 
 i=0
 
-for x in tests/*.in; do
-	./proj1 < $x > ${x%.in}.out.mine
+for test in tests/*.in; do
+	./proj1 < $test > ${test%.in}.out.mine
 
-	diff ${x%.in}.out ${x%.in}.out.mine > ${x%.in}.out.diff
-	if [ -s ${x%.in}.out.diff ]; then
-		echo " * FAILED ${x##*/}"
+	diff -cB ${test%.in}.out ${test%.in}.out.mine > ${test%.in}.out.diff
+	if [ -s ${test%.in}.out.diff ]; then
+		echo " * FAILED ${test##*/}"
 		i=$[i+1]
 	else
-		rm -f ${x%.in}.out.diff ${x%.in}.out.mine
+		rm -f ${test%.in}.out.diff ${test%.in}.out.mine
 	fi
 done
 
