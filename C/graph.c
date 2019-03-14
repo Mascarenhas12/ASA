@@ -152,10 +152,10 @@ static int tarjanVisitG(Graph G, int u, void* args, int count, Audit output)
  */
 void doTarjanSearchG(Graph G, Audit output)
 {
-	int color[G->V]; /* Vertex visit states */
-	int d[G->V];     /* Discovery times */
-	int p[G->V];     /* Precedents */
-	int low[G->V];   /* Lowest d[u] within a SCC of the DFS forest */
+	int* color= (int*)malloc(sizeof(int)*G->V); /* Vertex visit states */
+	int* d= (int*)malloc(sizeof(int)*G->V);     /* Discovery times */
+	int* p= (int*)malloc(sizeof(int)*G->V);     /* Precedents */
+	int* low= (int*)malloc(sizeof(int)*G->V);   /* Lowest d[u] within a SCC of the DFS forest */
 
 	dfsState_t state = {color, d, p, low}; /* DFS state variables declaration */
 
@@ -186,6 +186,10 @@ void doTarjanSearchG(Graph G, Audit output)
 			output->subNetIDs[output->netID-1] = output->netID;
 		}
 	}
+  free(color);
+  free(d);
+  free(p);
+  free(low);
 }
 
 /* Auxiliary function of doDFS_G() that visits a vertex during a DFS.
