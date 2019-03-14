@@ -78,22 +78,7 @@ void insertEdgeG(Graph G, Edge e)
 	G->E++;
 }
 
-/* *** Not used *** */
-/* Function that removes an edge from the graph.
- * Asymptotic complexity is O(V).
- *
- * G - Graph from which to remove an edge
- * e - Edge to be removed
- */
-void removeEdgeG(Graph G, Edge e)
-{
-	int u = e.u;
-	int v = e.v;
-
-	removeL(G->adjacencies[u-1], v);
-	removeL(G->adjacencies[v-1], u);
-	G->E--;
-}
+//deadCode 1:
 
 /* Auxiliary function of doTarjanSearchG() that visits a vertex during a DFS.
  * Returns the time count of each step of the algorithom.
@@ -207,16 +192,7 @@ void doTarjanSearchG(Graph G, Audit output)
 			output->cutV[p[u-1]-1] = 1;
 		}
 	}
-
-	/* ********** DFS DEBUG ********** */
-	// printf("*************** DFS State ***************\n");
-	// for (u = 1; u <= G->V; u++)
-	// {
-	// 	printf("%.2d: ", u);
-	// 	printf("color=%d d[%.2d]=%-2d low[%.2d]=%-2d p[%.2d]=%-2d cutV[%.2d]=%-2d", color[u-1], u-1, d[u-1], u-1, low[u-1], u-1, p[u-1], u-1, output->cutV[u-1]);
-	// 	printf("\n");
-	// }
-	/* ********** DFS DEBUG ********** */
+ //deadCode 2:
 }
 
 /* Auxiliary function of doDFS_G() that visits a vertex during a DFS.

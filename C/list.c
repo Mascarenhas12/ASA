@@ -32,36 +32,7 @@ Link insertL(Link head, int id)
 	return new;
 }
 
-/* *** Not used *** */
-/* Function responsible for removing an integer from a list, given its head.
- * The node of the list is also freed from memory.
- * Asymptotic complexity is O(N).
- *
- * head - Pointer to the first element on the list
- * id   - Integer to be removed
- */
-void removeL(Link head, int id)
-{
-	Link t, u;
-
-	for (u = NULL, t = head; t; u = t, t = t->next)
-	{
-		if (t->id == id)
-		{
-			if (u == NULL)
-			{
-				head = t->next;
-			}
-			else
-			{
-				u->next = t->next;
-			}
-
-			free(t);
-			break;
-		}
-	}
-}
+//deadCode 1:
 
 /* *** Used for debugging only *** */
 /* Function that prints a list, given its head.

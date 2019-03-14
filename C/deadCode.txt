@@ -1,0 +1,65 @@
+proj1.c:
+graph.c:
+  1:
+    /* *** Not used *** */
+    /* Function that removes an edge from the graph.
+     * Asymptotic complexity is O(V).
+     *
+     * G - Graph from which to remove an edge
+     * e - Edge to be removed
+     */
+    void removeEdgeG(Graph G, Edge e)
+    {
+      int u = e.u;
+      int v = e.v;
+
+      removeL(G->adjacencies[u-1], v);
+      removeL(G->adjacencies[v-1], u);
+      G->E--;
+    }
+
+  2:
+    /* ********** DFS DEBUG ********** */
+    // printf("*************** DFS State ***************\n");
+    // for (u = 1; u <= G->V; u++)
+    // {
+    // 	printf("%.2d: ", u);
+    // 	printf("color=%d d[%.2d]=%-2d low[%.2d]=%-2d p[%.2d]=%-2d cutV[%.2d]=%-2d", color[u-1], u-1, d[u-1], u-1, low[u-1], u-1, p[u-1], u-1, output->cutV[u-1]);
+    // 	printf("\n");
+    // }
+    /* ********** DFS DEBUG ********** */
+list.h:
+  1:
+    void removeL(Link head, int id);
+list.c:
+  1:
+    /* *** Not used *** */
+    /* Function responsible for removing an integer from a list, given its head.
+     * The node of the list is also freed from memory.
+     * Asymptotic complexity is O(N).
+     *
+     * head - Pointer to the first element on the list
+     * id   - Integer to be removed
+     */
+    void removeL(Link head, int id)
+    {
+      Link t, u;
+
+      for (u = NULL, t = head; t; u = t, t = t->next)
+      {
+        if (t->id == id)
+        {
+          if (u == NULL)
+          {
+            head = t->next;
+          }
+          else
+          {
+            u->next = t->next;
+          }
+
+          free(t);
+          break;
+        }
+      }
+    }

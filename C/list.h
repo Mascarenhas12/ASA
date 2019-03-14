@@ -23,7 +23,7 @@ struct node
 
 Link insertL(Link head, int id);
 
-void removeL(Link head, int id);
+//deadCode 1:
 
 void printL(Link head);
 
