@@ -38,11 +38,13 @@ int main()
 	if (!scanf("%d", &V) || V < MIN_ROUTER_NUM)
 	{
 		printf("Invalid number of routers!\n");
+		exit(1);
 	}
 
 	if (!scanf("%d", &E) || E < MIN_CONNECTION_NUM)
 	{
 		printf("Invalid number of connections!\n");
+		exit(1);
 	}
 
 	G = initG(V);
@@ -57,9 +59,9 @@ int main()
 
 	doTarjanSearchG(G, output);
 	doDFS_G(G, output);
-	freeG(G);
 
 	printAudit(G, output);
+	freeG(G);
 	freeAudit(output);
 
 	return 0;
