@@ -20,7 +20,6 @@
 #define NIL -1
 
 Audit initAudit(Graph G);
-void doAudit(Graph G, Audit output);
 void printAudit(Graph G, Audit output);
 void freeAudit(Audit a);
 
@@ -51,17 +50,17 @@ int main()
 	for (i = 0; i < E; i++)
 	{
 		scanf("%d %d", &u, &v);
-		insertEdgeG(G, createEdgeG(u, v));
+		insertEdgeG(G, u, v);
 	}
 
 	output = initAudit(G);
 
-	doAudit(G, output);
+	doTarjanSearchG(G, output);
+	doDFS_G(G, output);
+	freeG(G);
 
 	printAudit(G, output);
-
 	freeAudit(output);
-	freeG(G);
 
 	return 0;
 }
@@ -79,19 +78,14 @@ Audit initAudit(Graph G)
 	new->netID = 0;
 	new->subNetIDs = (int*) malloc(sizeof(int) * G->V);
 	new->numCutV = 0;
-	new->cutV = (int*) malloc(sizeof(int) * G->V);
+	new->cutV = (char*) malloc(sizeof(char) * G->V);
 	new->maxNetSize = 0;
 	return new;
 }
 
-void doAudit(Graph G, Audit output)
-{
-	doTarjanSearchG(G, output);
-	doDFS_G(G, output);
-}
-
 /* Function that prints the audit info.
  *
+ * G      - Graph the audit was applied on
  * output - Points to the struct that stores the audit info
  */
 void printAudit(Graph G, Audit output)

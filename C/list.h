@@ -23,8 +23,6 @@ struct node
 
 Link insertL(Link head, int id);
 
-void printL(Link head);
-
 void freeL(Link head);
 
 #endif

@@ -32,22 +32,6 @@ Link insertL(Link head, int id)
 	return new;
 }
 
-/* *** Used for debugging only *** */
-/* Function that prints a list, given its head.
- * Asymptotic complexity is O(N).
- *
- * head - Pointer to the head of the list to print
- */
-void printL(Link head)
-{
-	Link t;
-	for (t = head; t; t = t->next)
-	{
-		printf("%d ", t->id);
-	}
-	printf("\n");
-}
-
 /* Function that frees a list from memory, given its head.
  *
  * head - Pointer to the first element on the list
