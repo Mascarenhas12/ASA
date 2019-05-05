@@ -48,8 +48,8 @@ void putQ(Queue Q, int u)
 		Q->front = new;
 	}
 
-	Q->N++;
 	Q->back = new;
+	Q->N++;
 }
 
 /*
@@ -58,10 +58,11 @@ void putQ(Queue Q, int u)
 int getQ(Queue Q)
 {
 	QueueLink t;
+	int id;
 
 	if (!isEmptyQ(Q))
 	{
-		int id = Q->front->id;
+		id = Q->front->id;
 		t = Q->front;
 		Q->front = t->next;
 		free(t);

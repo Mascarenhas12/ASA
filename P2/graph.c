@@ -166,7 +166,7 @@ static void initializePreFLow(Graph G, Queue FIFO, PR_State_t* state, int s, int
 			{
 				color[v] = GRAY;
 				state->h[v] = state->h[u] + 1;
-				putQ(bfsQ, v);	
+				putQ(bfsQ, v);
 			}
 		}
 
@@ -204,6 +204,8 @@ static void relabel(Graph G, PR_State_t* state, int u)
 	Link t;
 	int min = G->V * 2; /* Height upper bound */
 
+	printf("relabel: h(%d)=%d\n", u, state->h[u]);
+
 	for (t = G->adj[u]; t; t = t->next)
 	{
 		if (t->edge->cap - t->edge->flow > 0)
@@ -237,7 +239,7 @@ static void push(PR_State_t* state, Link t, int u, int v)
 {
 	Edge edge = t->edge;
 
-	printf("push: u:%d v:%d e(%d)=%d cf(u,v)=%d\n", u, v, u, state->e[u], edge->cap - edge->flow);
+	printf("push: u:%d v:%d e(%d)=%d e(%d)=%d cf(u,v)=%d\n", u, v, u, state->e[u], v, state->e[v], edge->cap - edge->flow);
 
 	int f = MIN(state->e[u], edge->cap - edge->flow);
 	edge->flow += f;
@@ -304,7 +306,7 @@ void pushRelabelFIFO(Graph G, NetAudit output)
 
 	initializePreFLow(G, FIFO, (PR_State_t*) &state, 0, 1);
 
-	printf("0:%d/%d: ->%d/%d-> %d:%d/%d\n", state.h[0], state.e[0], G->adj[0]->next->edge->flow, G->adj[0]->next->edge->cap, G->adj[0]->next->edge->v, state.h[3], state.e[3]);
+	/*printf("0:%d/%d: ->%d/%d-> %d:%d/%d\n", state.h[0], state.e[0], G->adj[0]->next->edge->flow, G->adj[0]->next->edge->cap, G->adj[0]->next->edge->v, state.h[3], state.e[3]);*/
 	
 	while (!isEmptyQ(FIFO))
 	{
@@ -313,7 +315,12 @@ void pushRelabelFIFO(Graph G, NetAudit output)
 	}
 
 	printG(G);
-	printf("%d\n", state.e[1]); /* Max flow */
+
+	printf("\nmax flux: %d\n\n", state.e[1]); /* Max flow */
+
+	free(h);
+	free(e);
+	free(active);
 }
 
 void printG(Graph G)
