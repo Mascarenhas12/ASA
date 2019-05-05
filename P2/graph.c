@@ -39,7 +39,6 @@ Graph initG(int V, int S)
 	Graph new = (Graph) malloc(sizeof(struct graph));
 
 	new->V = V;
-  new->S = S;
 	new->E = 0;
 	new->adj = (Link*) malloc(sizeof(Link) * V);
 
@@ -49,9 +48,6 @@ Graph initG(int V, int S)
 	}
 
 	return new;
-
-  /*deadCode 1*/
-
 }
 
 /*
@@ -65,6 +61,7 @@ static Edge createWeightedEdgeG(int u, int v, int c)
 	new->v = v;
 	new->cap = c;
 	new->flow = 0;
+	new->filled = 0;
 
 	return new;
 }
@@ -88,9 +85,6 @@ void insertWeightedEdgeG(Graph G, int u, int v, int c)
 	linkOppositesL(G->adj[u], G->adj[v]);
 
 	G->E+=2;
-
-  /*deadCode 2*/
-
 }
 
 /* Uses BFS, also initializes heights.
@@ -104,7 +98,7 @@ static void initializePreFLow(Graph G, Queue FIFO, PR_State_t* state, int s, int
 
 	char* color = (char*) malloc(sizeof(char) * G->V); /* Vertex visit states */
 
-	Queue bfsQ = initQ(G->V);
+	Queue bfsQ = initQ();
 
 	for (u = 0; u < G->V; u++)
 	{
@@ -113,9 +107,10 @@ static void initializePreFLow(Graph G, Queue FIFO, PR_State_t* state, int s, int
 		state->e[u] = 0;
 		state->active[u] = 0;
 	}
-  state->active[0] = 1;
-  state->active[1] = 1;
+
 	state->h[s] = G->V;
+	state->active[s] = 1;
+	state->active[t] = 1;
 
 	color[t] = GRAY;
 	putQ(bfsQ, t);
@@ -147,8 +142,6 @@ static void initializePreFLow(Graph G, Queue FIFO, PR_State_t* state, int s, int
 			}
 		}
 
-    /*deadCode 3*/
-
 		color[u] = BLACK;
 	}
 
@@ -164,7 +157,7 @@ static void relabel(Graph G, PR_State_t* state, int u)
 	Link t;
 	int min = G->V * 2; /* Height upper bound */
 
-	printf("relabel: h(%d)=%d\n", u, state->h[u]);
+	/*printf("relabel: h(%d)=%d\n", u, state->h[u]);*/
 
 	for (t = G->adj[u]; t; t = t->next)
 	{
@@ -175,10 +168,7 @@ static void relabel(Graph G, PR_State_t* state, int u)
 	}
 	state->h[u] = 1 + min;
 
-	printf("relabel: h(%d)=%d\n", u, state->h[u]);
-
-  /*deadCode 4*/
-
+	/*printf("relabel: h(%d)=%d\n", u, state->h[u]);*/
 }
 
 /*
@@ -188,7 +178,7 @@ static void push(PR_State_t* state, Link t, int u, int v)
 {
 	Edge edge = t->edge;
 
-	printf("push: u:%d v:%d e(%d)=%d e(%d)=%d cf(u,v)=%d\n", u, v, u, state->e[u], v, state->e[v], edge->cap - edge->flow);
+	/*printf("push: u:%d v:%d e(%d)=%d e(%d)=%d cf(u,v)=%d\n", u, v, u, state->e[u], v, state->e[v], edge->cap - edge->flow);*/
 
 	int f = MIN(state->e[u], edge->cap - edge->flow);
 	edge->flow += f;
@@ -196,10 +186,7 @@ static void push(PR_State_t* state, Link t, int u, int v)
 	state->e[u] -= f;
 	state->e[v] += f;
 
-	printf("push: e(%d)=%d e(%d)=%d\n", u, state->e[u], v, state->e[v]);
-
-  /*deadCode 5*/
-
+	/*printf("push: e(%d)=%d e(%d)=%d\n", u, state->e[u], v, state->e[v]);*/
 }
 
 static void discharge(Graph G, Queue FIFO, PR_State_t* state, int u)
@@ -227,17 +214,82 @@ static void discharge(Graph G, Queue FIFO, PR_State_t* state, int u)
 				state->active[edge->v] = 1;
 				putQ(FIFO, edge->v);
 			}
-      t = t->next;
 		}
 		else {
 			t = t->next;
 		}
-		printQ(FIFO);
+		/*printQ(FIFO);*/
 	}
 
-  if(state->e[u] == 0){
-    state->active[u] = 0;
-  }
+	if (state->e[u] == 0)
+	{
+		state->active[u] = 0;
+	}
+}
+
+static void getMinCut(Graph G, NetAudit output, int t)
+{
+	Link l;
+	Edge opEdge;
+	int u, v;
+
+	char* color = (char*) malloc(sizeof(char) * G->V); /* Vertex visit states */
+
+	Queue bfsQ = initQ();
+
+	for (u = 0; u < G->V; u++)
+	{
+		color[u] = WHITE;
+		output->updateStations[u] = 0;
+	}
+
+	color[t] = GRAY;
+	putQ(bfsQ, t);
+
+	while (!isEmptyQ(bfsQ))
+	{
+		u = getQ(bfsQ);
+
+		for (l = G->adj[u]; l; l = l->next)
+		{
+			v = l->edge->v;
+			opEdge = l->opposite->edge;
+
+			if (opEdge->cap - opEdge->flow == 0)
+			{
+				if (u >= G->V - G->S)
+				{
+					output->updateStations[u] = 1;
+				}
+				else if (u >= G->V - (2 * G->S))
+				{
+					opEdge->filled = 1;
+				}
+			}
+			else if (color[v] == WHITE)
+			{
+				color[v] = GRAY;
+				putQ(bfsQ, v);
+			}
+		}
+		color[u] = BLACK;
+	}
+
+	for (u = 2; u < G->V; u++)
+	{
+		if (color[u] == WHITE)
+		{
+			for (l = G->adj[u]; l; l = l->next)
+			{
+				if (l->edge->filled)
+				{
+					output->updateConnections[output->idx++] = l->edge;
+				}
+			}
+		}
+	}
+
+	/* Encontar vertices brancos e ver adjacencias e encontarar arestas visitadas (flag filled) */
 }
 
 void pushRelabelFIFO(Graph G, NetAudit output)
@@ -250,27 +302,25 @@ void pushRelabelFIFO(Graph G, NetAudit output)
 
 	PR_State_t state = {h, e, active}; /* Push-Relabel state variables declaration */
 
-	Queue FIFO = initQ(G->V - 2);
+	Queue FIFO = initQ();
 
 	initializePreFLow(G, FIFO, (PR_State_t*) &state, 0, 1);
 
-	/*  ----DEBUG----
-  printf("0:%d/%d: ->%d/%d-> %d:%d/%d\n", state.h[0], state.e[0], G->adj[0]->next->edge->flow, G->adj[0]->next->edge->cap, G->adj[0]->next->edge->v, state.h[3], state.e[3]);*/
-
+	/*printf("0:%d/%d: ->%d/%d-> %d:%d/%d\n", state.h[0], state.e[0], G->adj[0]->next->edge->flow, G->adj[0]->next->edge->cap, G->adj[0]->next->edge->v, state.h[3], state.e[3]);*/
+	
 	while (!isEmptyQ(FIFO))
 	{
 		u = getQ(FIFO);
 		discharge(G, FIFO, (PR_State_t*) &state, u);
 	}
 
+	output->maxFlow = state.e[1];
+	getMinCut(G, output, 1);
+
+	/*
 	printG(G);
-
-  int i;
-  for(i=0;i<G->V;i++){
-    printf("%d ", h[i]);
-  }
-
-	printf("\nmax flux: %d\n\n", state.e[1]); /* Max flow */
+	printf("\nmax flux: %d\n\n", state.e[1]);
+	*/
 
 	free(h);
 	free(e);
@@ -286,46 +336,6 @@ void printG(Graph G)
 		printf("%d: ", i);
 		printL(G->adj[i]);
 	}
-
-  /*deadCode 6*/
-
-}
-
-void minCut(Graph G ,PR_State_t* state){
-  Link l;
-  int u,v;
-  Edge opEdge;
-  char* color = (char*) malloc(sizeof(char) * G->V); /* Vertex visit states */
-
-	Queue bfsQ = initQ(G->V);
-
-  for (u = 0; u < G->V; u++)
-  {
-    color[u] = WHITE;
-  }
-
-  color[t] = GRAY;
-	putQ(bfsQ, t);
-
-	while (!isEmptyQ(bfsQ))
-	{
-		u = getQ(bfsQ);
-
-		for (l = G->adj[u]; l; l = l->next)
-		{
-			v = l->edge->v;
-      color[v] = GRAY;
-
-      if(l->opposite->edge->cap - l->opposite->edge->flow != 0){
-        putQ(bfsQ,v);
-      }
-      else{
-
-      }
-    }
-    color[u] = BLACK;
-  }
-
 }
 
 /* Function that frees a graph from memory, given a pointer to it.
@@ -344,7 +354,4 @@ void freeG(Graph G)
 
 	free(G->adj);
 	free(G);
-
-  /*deadCode 7*/
-
 }

@@ -23,7 +23,7 @@ struct graph
 	/*int **adj;*/
 };
 
-/* Struct that represents the state of the FIFO push-relabel algorithom,
+/* Struct that represents the state of the FIFO push-relabel algorithom, 
  * storing its relevant variables */
 struct PR_State
 {
@@ -42,8 +42,9 @@ typedef struct PR_State PR_State_t;
 struct audit
 {
 	int maxFlow;
-	int* updateStations;
+	char* updateStations;
 	Edge* updateConnections;
+	int idx;
 };
 
 /* Abstraction of the audit struct to a pointer type NetAudit */

@@ -18,6 +18,8 @@ struct edge
 	int v;
 	int cap;
 	int flow;
+
+	char filled;
 };
 
 /* Abstraction of the node struct to a type Link */
