@@ -32,13 +32,15 @@ enum bfs_colors {
  *
  * V - Number of vertices in the graph
  */
-Graph initG(int V, int S)
+Graph initG(int V,int P,int S)
 {
 	int i;
 
 	Graph new = (Graph) malloc(sizeof(struct graph));
 
 	new->V = V;
+  new->S = S;
+  new->P = P;
 	new->E = 0;
 	new->adj = (Link*) malloc(sizeof(Link) * V);
 
@@ -248,6 +250,7 @@ static void getMinCut(Graph G, NetAudit output, int t)
 
 	while (!isEmptyQ(bfsQ))
 	{
+    /*printQ(bfsQ);*/
 		u = getQ(bfsQ);
 
 		for (l = G->adj[u]; l; l = l->next)
@@ -259,9 +262,10 @@ static void getMinCut(Graph G, NetAudit output, int t)
 			{
 				if (u >= G->V - G->S)
 				{
-					output->updateStations[u] = 1;
+					/*output->updateStations[v] = 1;*/
+          opEdge->filled = 1;
 				}
-				else if (u >= G->V - (2 * G->S))
+				else if (u > G->P +1 || u ==1)/*?>=G->V - (2 * G->S)?*/
 				{
 					opEdge->filled = 1;
 				}
@@ -283,12 +287,26 @@ static void getMinCut(Graph G, NetAudit output, int t)
 			{
 				if (l->edge->filled)
 				{
-					output->updateConnections[output->idx++] = l->edge;
+
+          if (l->edge->v >= G->V - G->S)
+  				{
+  					output->updateStations[u] = 1;
+  				}
+  				else if (u > 1 && l->edge->v < (G->V - G->S))/*?>=G->V - (2 * G->S)?*/
+  				{
+  					output->updateConnections[output->idx++] = l->edge;
+  				}
+
+          /*if(color[l->edge->v] != WHITE){
+            output->updateStations[l->edge->v] = 0;
+          }*/
+					/*output->updateConnections[output->idx++] = l->edge;*/
 				}
 			}
 		}
 	}
-
+  free(color);
+  freeQ(bfsQ);
 	/* Encontar vertices brancos e ver adjacencias e encontarar arestas visitadas (flag filled) */
 }
 
@@ -307,7 +325,7 @@ void pushRelabelFIFO(Graph G, NetAudit output)
 	initializePreFLow(G, FIFO, (PR_State_t*) &state, 0, 1);
 
 	/*printf("0:%d/%d: ->%d/%d-> %d:%d/%d\n", state.h[0], state.e[0], G->adj[0]->next->edge->flow, G->adj[0]->next->edge->cap, G->adj[0]->next->edge->v, state.h[3], state.e[3]);*/
-	
+
 	while (!isEmptyQ(FIFO))
 	{
 		u = getQ(FIFO);
@@ -321,7 +339,7 @@ void pushRelabelFIFO(Graph G, NetAudit output)
 	printG(G);
 	printf("\nmax flux: %d\n\n", state.e[1]);
 	*/
-
+  freeQ(FIFO);
 	free(h);
 	free(e);
 	free(active);

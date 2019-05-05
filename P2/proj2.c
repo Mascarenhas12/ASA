@@ -49,7 +49,7 @@ int main()
 
 	V = P + 2*S + 2; /* Add source and sink (hiper) and double stations (have a inner capacity) */
 
-	Net = initG(V, S);
+	Net = initG(V, P, S);
 
 	/* Add T edges plus edges from source to providers and for stations (have a inner capacity) */
 
@@ -82,13 +82,14 @@ int main()
 	NetAudit out = initNetAudit(Net);
 
 	/*printf("\n");*/
+
 	pushRelabelFIFO(Net, out);
 
 	printAudit(Net, out);
 
 	freeG(Net);
 	freeAudit(out);
-	
+
 	return 0;
 }
 
@@ -102,7 +103,7 @@ NetAudit initNetAudit(Graph G)
 	NetAudit new = (NetAudit) malloc(sizeof(struct audit));
 
 	new->maxFlow = 0;
-	new->updateStations = (char*) malloc(sizeof(char) * (G->V - G->S));
+	new->updateStations = (char*) malloc(sizeof(char) * G->V);
 	new->updateConnections = (Edge*) calloc(G->E, sizeof(struct edge));
 	new->idx = 0;
 
@@ -122,20 +123,24 @@ void printAudit(Graph G, NetAudit out)
 		{
 			if (!flag)
 			{
-				printf("%d", out->updateStations[i]);
+				printf("%d", i);
 				flag = 1;
 			}
 			else
 			{
-				printf(" %d", out->updateStations[i]);
+				printf(" %d", i);
 			}
 		}
 	}
+	printf("\n");
 
 	for (i = 0; i < G->E; i++)
 	{
 		if (out->updateConnections[i] != NULL)
 		{
+			if(out->updateConnections[i]->u >= (G->V - G->S)){
+				out->updateConnections[i]->u -= G->S;
+			}
 			printf("%d %d\n", out->updateConnections[i]->u, out->updateConnections[i]->v);
 		}
 	}
@@ -151,6 +156,3 @@ void freeAudit(NetAudit a)
 	free(a->updateConnections);
 	free(a);
 }
-
-
-

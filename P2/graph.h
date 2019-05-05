@@ -17,13 +17,14 @@
 struct graph
 {
 	int V;
+	int P;
 	int S;
 	int E;
 	Link *adj;
 	/*int **adj;*/
 };
 
-/* Struct that represents the state of the FIFO push-relabel algorithom, 
+/* Struct that represents the state of the FIFO push-relabel algorithom,
  * storing its relevant variables */
 struct PR_State
 {
@@ -50,7 +51,7 @@ struct audit
 /* Abstraction of the audit struct to a pointer type NetAudit */
 typedef struct audit *NetAudit;
 
-Graph initG(int V, int S);
+Graph initG(int V,int P,int S);
 void insertWeightedEdgeG(Graph G, int u, int v, int c);
 void pushRelabelFIFO(Graph G, NetAudit output);
 void printG(Graph G);

@@ -69,6 +69,7 @@ void freeL(Link head)
 	{
 		t = head;
 		head = t->next;
+		free(t->edge);
 		free(t);
 	}
 }
@@ -97,7 +98,7 @@ int sizeL(List L)
  *
  * L    - List in which to insert an edge
  * edge - Edge to insert
- 
+
 void oldinsertL(List L, Edge edge)
 {
 	Link new = (Link) malloc(sizeof(struct node));
