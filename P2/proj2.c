@@ -48,7 +48,7 @@ int main()
 
 	V = P + 2*S + 2; /* Add source and sink (hiper) and double stations (have a inner capacity) */
 
-	Net = initG(V);
+	Net = initG(V,S);
 
 	/* Add T edges plus edges from source to providers and for stations (have a inner capacity) */
 
@@ -85,7 +85,7 @@ int main()
 
 	freeG(Net);
 	freeAudit(out);
-	
+
 	return 0;
 }
 
@@ -115,6 +115,3 @@ void freeAudit(NetAudit a)
 	free(a->updateConnections);
 	free(a);
 }
-
-
-

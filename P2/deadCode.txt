@@ -1,0 +1,93 @@
+graph.c:
+  1)
+      int i, j;
+
+      Graph new = (Graph) malloc(sizeof(struct graph));
+
+      new->V = V;
+      new->E = 0;
+      new->adj = (int**) malloc(sizeof(int*) * V);
+
+      for (i = 0; i < V; i++)
+      {
+        new->adj[i] = (int*) malloc(sizeof(int) * V);
+        for (j = 0; j < V; j++)
+        {
+          new->adj[i][j] = 0;
+        }
+      }
+
+      return new;
+
+  2)
+      e1->reverseIdx = sizeL(G->adj[v] - 1);
+      e2->reverseIdx = sizeL(G->adj[u] - 1);
+      */
+
+      /*
+      G->adj[u][v] = c;
+      G->E++;
+
+  3)
+      for (v = 0; v < G->V; v++)
+      {
+        if (u == s && G->adj[u][v] > 0)
+        {
+          G->adj[v][u] = G->adj[u][v]; // Max flow from s to v means reverse edge in residual net
+          state->e[v] = G->adj[u][v];  // Update excess of v
+          state->e[u] -= G->adj[u][v]; // Update excess of s
+          G->adj[u][v] = 0;			 // Edge is full, so it stops existing in residual net
+          putQ(FIFO, v);				 // Add vertex to push-relabel FIFO
+        }
+        else if (G->adj[v][u] > 0 && color[v] == WHITE)
+        {
+          color[v] = GRAY;
+          state->h[v] = state->h[u] + 1;
+          putQ(bfsQ, v);
+        }
+
+  4)
+      int v;
+    	int min = G->V * 2; // Height upper bound
+
+    	for (v = 0; v < G->V; v++)
+    	{
+    		if (G->adj[u][v] > 0)
+    		{
+    			min = MIN(min, state->h[v]);
+    		}
+    	}
+    	state->h[u] = 1 + min;
+
+  5)
+      int f = MIN(state->e[u], G->adj[u][v]);
+    	G->adj[v][u] += f;
+    	G->adj[u][v] -= f;
+    	state->e[u] -= f;
+    	state->e[v] += f;
+
+  6)
+      int i, j;
+
+    	for (i = 0; i < G->V; i++)
+    	{
+    		printf("%-3d", G->adj[i][0]);
+
+    		for (j = 1; j < G->V; j++)
+    		{
+    			printf(" ");
+    			printf("%-3d", G->adj[i][j]);
+    		}
+    		printf("\n");
+    	}
+
+  7)
+      int i;
+
+    	for (i = 0; i < G->V; i++)
+    	{
+    		free(G->adj[i]);
+    	}
+
+    	free(G->adj);
+    	free(G);

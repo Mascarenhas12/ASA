@@ -32,13 +32,14 @@ enum bfs_colors {
  *
  * V - Number of vertices in the graph
  */
-Graph initG(int V)
+Graph initG(int V, int S)
 {
 	int i;
 
 	Graph new = (Graph) malloc(sizeof(struct graph));
 
 	new->V = V;
+  new->S = S;
 	new->E = 0;
 	new->adj = (Link*) malloc(sizeof(Link) * V);
 
@@ -49,26 +50,8 @@ Graph initG(int V)
 
 	return new;
 
-	/*
-	int i, j;
+  /*deadCode 1*/
 
-	Graph new = (Graph) malloc(sizeof(struct graph));
-
-	new->V = V;
-	new->E = 0;
-	new->adj = (int**) malloc(sizeof(int*) * V);
-
-	for (i = 0; i < V; i++)
-	{
-		new->adj[i] = (int*) malloc(sizeof(int) * V);
-		for (j = 0; j < V; j++)
-		{
-			new->adj[i][j] = 0;
-		}
-	}
-
-	return new;
-	*/
 }
 
 /*
@@ -106,15 +89,8 @@ void insertWeightedEdgeG(Graph G, int u, int v, int c)
 
 	G->E+=2;
 
-	/*
-	e1->reverseIdx = sizeL(G->adj[v] - 1);
-	e2->reverseIdx = sizeL(G->adj[u] - 1);
-	*/
+  /*deadCode 2*/
 
-	/*
-	G->adj[u][v] = c;
-	G->E++;
-	*/
 }
 
 /* Uses BFS, also initializes heights.
@@ -137,7 +113,8 @@ static void initializePreFLow(Graph G, Queue FIFO, PR_State_t* state, int s, int
 		state->e[u] = 0;
 		state->active[u] = 0;
 	}
-
+  state->active[0] = 1;
+  state->active[1] = 1;
 	state->h[s] = G->V;
 
 	color[t] = GRAY;
@@ -170,24 +147,7 @@ static void initializePreFLow(Graph G, Queue FIFO, PR_State_t* state, int s, int
 			}
 		}
 
-		/*
-		for (v = 0; v < G->V; v++)
-		{
-			if (u == s && G->adj[u][v] > 0)
-			{
-				G->adj[v][u] = G->adj[u][v]; // Max flow from s to v means reverse edge in residual net
-				state->e[v] = G->adj[u][v];  // Update excess of v
-				state->e[u] -= G->adj[u][v]; // Update excess of s
-				G->adj[u][v] = 0;			 // Edge is full, so it stops existing in residual net
-				putQ(FIFO, v);				 // Add vertex to push-relabel FIFO
-			}
-			else if (G->adj[v][u] > 0 && color[v] == WHITE)
-			{
-				color[v] = GRAY;
-				state->h[v] = state->h[u] + 1;
-				putQ(bfsQ, v);
-			}
-		}*/
+    /*deadCode 3*/
 
 		color[u] = BLACK;
 	}
@@ -217,19 +177,8 @@ static void relabel(Graph G, PR_State_t* state, int u)
 
 	printf("relabel: h(%d)=%d\n", u, state->h[u]);
 
-	/*
-	int v;
-	int min = G->V * 2; // Height upper bound
+  /*deadCode 4*/
 
-	for (v = 0; v < G->V; v++)
-	{
-		if (G->adj[u][v] > 0)
-		{
-			min = MIN(min, state->h[v]);
-		}
-	}
-	state->h[u] = 1 + min;
-	*/
 }
 
 /*
@@ -249,13 +198,8 @@ static void push(PR_State_t* state, Link t, int u, int v)
 
 	printf("push: e(%d)=%d e(%d)=%d\n", u, state->e[u], v, state->e[v]);
 
-	/*
-	int f = MIN(state->e[u], G->adj[u][v]);
-	G->adj[v][u] += f;
-	G->adj[u][v] -= f;
-	state->e[u] -= f;
-	state->e[v] += f;
-	*/
+  /*deadCode 5*/
+
 }
 
 static void discharge(Graph G, Queue FIFO, PR_State_t* state, int u)
@@ -273,7 +217,6 @@ static void discharge(Graph G, Queue FIFO, PR_State_t* state, int u)
 		{
 			relabel(G, state, u);
 			putQ(FIFO, u);
-			/* edge = G->adj[u]->edge; */
 			break;
 		}
 		else if (edge->cap - edge->flow > 0 && state->h[u] == state->h[edge->v] + 1)
@@ -284,12 +227,17 @@ static void discharge(Graph G, Queue FIFO, PR_State_t* state, int u)
 				state->active[edge->v] = 1;
 				putQ(FIFO, edge->v);
 			}
+      t = t->next;
 		}
 		else {
 			t = t->next;
 		}
 		printQ(FIFO);
 	}
+
+  if(state->e[u] == 0){
+    state->active[u] = 0;
+  }
 }
 
 void pushRelabelFIFO(Graph G, NetAudit output)
@@ -306,8 +254,9 @@ void pushRelabelFIFO(Graph G, NetAudit output)
 
 	initializePreFLow(G, FIFO, (PR_State_t*) &state, 0, 1);
 
-	/*printf("0:%d/%d: ->%d/%d-> %d:%d/%d\n", state.h[0], state.e[0], G->adj[0]->next->edge->flow, G->adj[0]->next->edge->cap, G->adj[0]->next->edge->v, state.h[3], state.e[3]);*/
-	
+	/*  ----DEBUG----
+  printf("0:%d/%d: ->%d/%d-> %d:%d/%d\n", state.h[0], state.e[0], G->adj[0]->next->edge->flow, G->adj[0]->next->edge->cap, G->adj[0]->next->edge->v, state.h[3], state.e[3]);*/
+
 	while (!isEmptyQ(FIFO))
 	{
 		u = getQ(FIFO);
@@ -315,6 +264,11 @@ void pushRelabelFIFO(Graph G, NetAudit output)
 	}
 
 	printG(G);
+
+  int i;
+  for(i=0;i<G->V;i++){
+    printf("%d ", h[i]);
+  }
 
 	printf("\nmax flux: %d\n\n", state.e[1]); /* Max flow */
 
@@ -333,21 +287,45 @@ void printG(Graph G)
 		printL(G->adj[i]);
 	}
 
-	/*
-	int i, j;
+  /*deadCode 6*/
 
-	for (i = 0; i < G->V; i++)
+}
+
+void minCut(Graph G ,PR_State_t* state){
+  Link l;
+  int u,v;
+  Edge opEdge;
+  char* color = (char*) malloc(sizeof(char) * G->V); /* Vertex visit states */
+
+	Queue bfsQ = initQ(G->V);
+
+  for (u = 0; u < G->V; u++)
+  {
+    color[u] = WHITE;
+  }
+
+  color[t] = GRAY;
+	putQ(bfsQ, t);
+
+	while (!isEmptyQ(bfsQ))
 	{
-		printf("%-3d", G->adj[i][0]);
+		u = getQ(bfsQ);
 
-		for (j = 1; j < G->V; j++)
+		for (l = G->adj[u]; l; l = l->next)
 		{
-			printf(" ");
-			printf("%-3d", G->adj[i][j]);
-		}
-		printf("\n");
-	}
-	*/
+			v = l->edge->v;
+      color[v] = GRAY;
+
+      if(l->opposite->edge->cap - l->opposite->edge->flow != 0){
+        putQ(bfsQ,v);
+      }
+      else{
+
+      }
+    }
+    color[u] = BLACK;
+  }
+
 }
 
 /* Function that frees a graph from memory, given a pointer to it.
@@ -367,15 +345,6 @@ void freeG(Graph G)
 	free(G->adj);
 	free(G);
 
-	/*
-	int i;
+  /*deadCode 7*/
 
-	for (i = 0; i < G->V; i++)
-	{
-		free(G->adj[i]);
-	}
-
-	free(G->adj);
-	free(G);
-	*/
 }
