@@ -31,6 +31,7 @@ struct PR_State
 	int* h;
 	int* e;
 	char* active;
+	int* gap;
 };
 
 /* Abstraction of the graph struct to a pointer type Graph */
@@ -43,8 +44,8 @@ typedef struct PR_State PR_State_t;
 struct audit
 {
 	int maxFlow;
-	char* updateStations;
-	Edge* updateConnections;
+	char* minCutS;
+	Edge* minCutE;
 	int idx;
 };
 

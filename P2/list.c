@@ -30,15 +30,15 @@ Link insertL(Link head, Edge edge)
 
 	new->edge = edge;
 	new->next = head;
-	new->opposite = NULL;
+	new->opEdge = NULL;
 
 	return new;
 }
 
 void linkOppositesL(Link t, Link u)
 {
-	t->opposite = u;
-	u->opposite = t;
+	t->opEdge = u->edge;
+	u->opEdge = t->edge;
 }
 
 void printL(Link head)

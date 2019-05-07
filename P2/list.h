@@ -23,8 +23,8 @@ typedef struct list *List;*/
 struct node
 {
 	Edge edge;
+	Edge opEdge;
 	Link next;
-	Link opposite;
 };
 
 /*

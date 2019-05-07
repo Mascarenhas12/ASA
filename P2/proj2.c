@@ -27,6 +27,15 @@ NetAudit initNetAudit(Graph G);
 void printAudit(Graph G, NetAudit out);
 void freeAudit(NetAudit a);
 
+int cmpfunc (const void * a, const void * b)
+{
+	if ((*(Edge*)a)->u - (*(Edge*)b)->u)
+	{
+		return (*(Edge*)a)->u - (*(Edge*)b)->u;
+	}
+	return (*(Edge*)a)->v - (*(Edge*)b)->v;
+}
+
 int main()
 {
 	int P; /* Number of providers */
@@ -56,13 +65,13 @@ int main()
 	for (i = 2; i < P+2; i++)
 	{
 		scanf("%d", &cap);
-		insertWeightedEdgeG(Net, 0, i, cap); /* 0 represents the source */
+		insertWeightedEdgeG(Net, i, 0, cap); /* 0 represents the sink */
 	}
 
 	for (i = P+2; i < S+(P+2); i++)
 	{
 		scanf("%d", &cap);
-		insertWeightedEdgeG(Net, i, i+S, cap);
+		insertWeightedEdgeG(Net, i+S, i, cap);
 	}
 
 	for (i = 0; i < T; i++)
@@ -76,7 +85,7 @@ int main()
 		{
 			u = u + S;
 		}
-		insertWeightedEdgeG(Net, u, v, cap);
+		insertWeightedEdgeG(Net, v, u, cap);
 	}
 
 	NetAudit out = initNetAudit(Net);
@@ -103,8 +112,8 @@ NetAudit initNetAudit(Graph G)
 	NetAudit new = (NetAudit) malloc(sizeof(struct audit));
 
 	new->maxFlow = 0;
-	new->updateStations = (char*) malloc(sizeof(char) * G->V);
-	new->updateConnections = (Edge*) calloc(G->E, sizeof(struct edge));
+	new->minCutS = (char*) malloc(sizeof(char) * G->S);
+	new->minCutE = (Edge*) calloc(G->E, sizeof(struct edge));
 	new->idx = 0;
 
 	return new;
@@ -119,7 +128,7 @@ void printAudit(Graph G, NetAudit out)
 
 	for (i = 0; i < (G->V - G->S); i++)
 	{
-		if (out->updateStations[i] != 0)
+		if (out->minCutS[i] != 0)
 		{
 			if (!flag)
 			{
@@ -134,15 +143,20 @@ void printAudit(Graph G, NetAudit out)
 	}
 	printf("\n");
 
+	qsort(out->minCutE, out->idx, sizeof(Edge), cmpfunc);
+
 	for (i = 0; i < G->E; i++)
 	{
-		if (out->updateConnections[i] != NULL)
+		if (out->minCutE[i] == NULL)
 		{
-			if(out->updateConnections[i]->u >= (G->V - G->S)){
-				out->updateConnections[i]->u -= G->S;
-			}
-			printf("%d %d\n", out->updateConnections[i]->u, out->updateConnections[i]->v);
+			continue;
 		}
+
+		if (out->minCutE[i]->u >= (G->V - G->S))
+		{
+			out->minCutE[i]->u -= G->S;
+		}
+		printf("%d %d\n", out->minCutE[i]->u, out->minCutE[i]->v);
 	}
 }
 
@@ -152,7 +166,7 @@ void printAudit(Graph G, NetAudit out)
  */
 void freeAudit(NetAudit a)
 {
-	free(a->updateStations);
-	free(a->updateConnections);
+	free(a->minCutS);
+	free(a->minCutE);
 	free(a);
 }

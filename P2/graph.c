@@ -18,6 +18,7 @@
 #include "queue.h"
 
 #define MIN(a, b) (a < b ? a : b)
+#define MAX(a, b) (a > b ? a : b)
 
 enum bfs_colors {
     WHITE = 0,
@@ -32,15 +33,15 @@ enum bfs_colors {
  *
  * V - Number of vertices in the graph
  */
-Graph initG(int V,int P,int S)
+Graph initG(int V, int P, int S)
 {
 	int i;
 
 	Graph new = (Graph) malloc(sizeof(struct graph));
 
 	new->V = V;
-  new->S = S;
-  new->P = P;
+	new->P = P;
+	new->S = S;
 	new->E = 0;
 	new->adj = (Link*) malloc(sizeof(Link) * V);
 
@@ -89,66 +90,56 @@ void insertWeightedEdgeG(Graph G, int u, int v, int c)
 	G->E+=2;
 }
 
-/* Uses BFS, also initializes heights.
- * Time O(V+E)
- */
 static void initializePreFLow(Graph G, Queue FIFO, PR_State_t* state, int s, int t)
 {
-	Link l;
-	Edge opEdge;
 	int u, v;
-
-	char* color = (char*) malloc(sizeof(char) * G->V); /* Vertex visit states */
-
-	Queue bfsQ = initQ();
+	Link l;
+	Edge edge;
 
 	for (u = 0; u < G->V; u++)
 	{
-		color[u] = WHITE;
 		state->h[u] = 0;
 		state->e[u] = 0;
 		state->active[u] = 0;
+		state->gap[u] = 0;
+		state->gap[2*u] = 0;
 	}
 
 	state->h[s] = G->V;
+	state->gap[G->V] += 1;
 	state->active[s] = 1;
 	state->active[t] = 1;
 
-	color[t] = GRAY;
-	putQ(bfsQ, t);
-
-	while (!isEmptyQ(bfsQ))
+	for (l = G->adj[s]; l; l = l->next)
 	{
-		u = getQ(bfsQ);
+		edge = l->edge;
+		v = l->edge->v;
 
-		for (l = G->adj[u]; l; l = l->next)
-		{
-			v = l->edge->v;
-
-			if (v == s)
-			{
-				opEdge = l->opposite->edge;
-
-				opEdge->flow = opEdge->cap;
-				l->edge->flow = opEdge->flow * -1;
-				state->e[u] = opEdge->flow;
-				state->e[v] -= opEdge->flow;
-				state->active[u] = 1;
-				putQ(FIFO, u);
-			}
-			else if (color[v] == WHITE)
-			{
-				color[v] = GRAY;
-				state->h[v] = state->h[u] + 1;
-				putQ(bfsQ, v);
-			}
-		}
-
-		color[u] = BLACK;
+		edge->flow = edge->cap;
+		l->opEdge->flow = edge->flow * -1;
+		state->e[v] = edge->flow;
+		state->e[s] -= edge->flow;
+		state->active[v] = 1;
+		putQ(FIFO, v);
 	}
+}
 
-	free(color);
-	freeQ(bfsQ);
+/*
+ * O(V) -> pode melhorar (muito) para O(degree(V)) se se usar array de listas
+ */
+static void gapRelabel(Graph G, Queue FIFO, PR_State_t* state, int h)
+{
+	int u;
+
+	for (u = 2; u < G->V; u++)
+	{
+		if (state->h[u] >= h)
+		{
+			state->gap[state->h[u]] -= 1;
+			state->h[u] = MAX(G->V, state->h[u]);
+			state->gap[state->h[u]] += 1;
+		}
+	}
 }
 
 /*
@@ -157,9 +148,7 @@ static void initializePreFLow(Graph G, Queue FIFO, PR_State_t* state, int s, int
 static void relabel(Graph G, PR_State_t* state, int u)
 {
 	Link t;
-	int min = G->V * 2; /* Height upper bound */
-
-	/*printf("relabel: h(%d)=%d\n", u, state->h[u]);*/
+	int min = G->V * 2;  /* Height upper bound */
 
 	for (t = G->adj[u]; t; t = t->next)
 	{
@@ -168,9 +157,9 @@ static void relabel(Graph G, PR_State_t* state, int u)
 			min = MIN(min, state->h[t->edge->v]);
 		}
 	}
+	state->gap[state->h[u]] -= 1;
 	state->h[u] = 1 + min;
-
-	/*printf("relabel: h(%d)=%d\n", u, state->h[u]);*/
+	state->gap[state->h[u]] += 1;
 }
 
 /*
@@ -180,15 +169,11 @@ static void push(PR_State_t* state, Link t, int u, int v)
 {
 	Edge edge = t->edge;
 
-	/*printf("push: u:%d v:%d e(%d)=%d e(%d)=%d cf(u,v)=%d\n", u, v, u, state->e[u], v, state->e[v], edge->cap - edge->flow);*/
-
 	int f = MIN(state->e[u], edge->cap - edge->flow);
 	edge->flow += f;
-	t->opposite->edge->flow = edge->flow * -1;
+	t->opEdge->flow = edge->flow * -1;
 	state->e[u] -= f;
 	state->e[v] += f;
-
-	/*printf("push: e(%d)=%d e(%d)=%d\n", u, state->e[u], v, state->e[v]);*/
 }
 
 static void discharge(Graph G, Queue FIFO, PR_State_t* state, int u)
@@ -202,11 +187,18 @@ static void discharge(Graph G, Queue FIFO, PR_State_t* state, int u)
 		{
 			edge = t->edge;
 		}
+
 		if (t == NULL)
-		{
-			relabel(G, state, u);
-			putQ(FIFO, u);
-			break;
+		{			
+			if (state->gap[state->h[u]] == 1)
+			{
+				gapRelabel(G, FIFO, state, state->h[u]);
+			}
+			else
+			{
+				relabel(G, state, u);
+				t = G->adj[u];
+			}
 		}
 		else if (edge->cap - edge->flow > 0 && state->h[u] == state->h[edge->v] + 1)
 		{
@@ -217,97 +209,49 @@ static void discharge(Graph G, Queue FIFO, PR_State_t* state, int u)
 				putQ(FIFO, edge->v);
 			}
 		}
-		else {
+		else
+		{
 			t = t->next;
 		}
-		/*printQ(FIFO);*/
 	}
-
 	if (state->e[u] == 0)
 	{
 		state->active[u] = 0;
 	}
 }
 
-static void getMinCut(Graph G, NetAudit output, int t)
+static void getMinCut(Graph G, PR_State_t* state, NetAudit output, int s)
 {
+	int u;
+	int h;
 	Link l;
-	Edge opEdge;
-	int u, v;
 
-	char* color = (char*) malloc(sizeof(char) * G->V); /* Vertex visit states */
-
-	Queue bfsQ = initQ();
+	for (h = 2; h < G->V; h++)
+	{
+		if (state->gap[h] == 0)
+			break;
+	}
 
 	for (u = 0; u < G->V; u++)
 	{
-		color[u] = WHITE;
-		output->updateStations[u] = 0;
-	}
-
-	color[t] = GRAY;
-	putQ(bfsQ, t);
-
-	while (!isEmptyQ(bfsQ))
-	{
-    /*printQ(bfsQ);*/
-		u = getQ(bfsQ);
+		if (state->h[u] < h)
+			continue;
 
 		for (l = G->adj[u]; l; l = l->next)
 		{
-			v = l->edge->v;
-			opEdge = l->opposite->edge;
+			if (state->h[l->edge->v] > h)
+				continue;
 
-			if (opEdge->cap - opEdge->flow == 0)
+			if (u >= G->V - G->S)
 			{
-				if (u >= G->V - G->S)
-				{
-					/*output->updateStations[v] = 1;*/
-          opEdge->filled = 1;
-				}
-				else if (u > G->P +1 || u ==1)/*?>=G->V - (2 * G->S)?*/
-				{
-					opEdge->filled = 1;
-				}
+				output->minCutS[l->edge->v] = 1;
 			}
-			else if (color[v] == WHITE)
+			else if (u == 1 || u > G->P+1)
 			{
-				color[v] = GRAY;
-				putQ(bfsQ, v);
-			}
-		}
-		color[u] = BLACK;
-	}
-
-	for (u = 2; u < G->V; u++)
-	{
-		if (color[u] == WHITE)
-		{
-			for (l = G->adj[u]; l; l = l->next)
-			{
-				if (l->edge->filled)
-				{
-
-          if (l->edge->v >= G->V - G->S)
-  				{
-  					output->updateStations[u] = 1;
-  				}
-  				else if (u > 1 && l->edge->v < (G->V - G->S))/*?>=G->V - (2 * G->S)?*/
-  				{
-  					output->updateConnections[output->idx++] = l->edge;
-  				}
-
-          /*if(color[l->edge->v] != WHITE){
-            output->updateStations[l->edge->v] = 0;
-          }*/
-					/*output->updateConnections[output->idx++] = l->edge;*/
-				}
+				output->minCutE[output->idx++] = l->opEdge;
 			}
 		}
 	}
-  free(color);
-  freeQ(bfsQ);
-	/* Encontar vertices brancos e ver adjacencias e encontarar arestas visitadas (flag filled) */
 }
 
 void pushRelabelFIFO(Graph G, NetAudit output)
@@ -317,14 +261,13 @@ void pushRelabelFIFO(Graph G, NetAudit output)
 	int* h = (int*) malloc(sizeof(int) * G->V); /* Heights of vertices */
 	int* e = (int*) malloc(sizeof(int) * G->V); /* Excesses of vertices */
 	char* active = (char*) malloc(sizeof(char) * G->V); /* Active vertices (that have excess) */
+	int* gap = (int*) malloc(sizeof(int) * (2*G->V)); /* Number of nodes gap[i] with height i */
 
-	PR_State_t state = {h, e, active}; /* Push-Relabel state variables declaration */
+	PR_State_t state = {h, e, active, gap}; /* Push-Relabel state variables declaration */
 
 	Queue FIFO = initQ();
 
-	initializePreFLow(G, FIFO, (PR_State_t*) &state, 0, 1);
-
-	/*printf("0:%d/%d: ->%d/%d-> %d:%d/%d\n", state.h[0], state.e[0], G->adj[0]->next->edge->flow, G->adj[0]->next->edge->cap, G->adj[0]->next->edge->v, state.h[3], state.e[3]);*/
+	initializePreFLow(G, FIFO, (PR_State_t*) &state, 1, 0);
 
 	while (!isEmptyQ(FIFO))
 	{
@@ -332,17 +275,15 @@ void pushRelabelFIFO(Graph G, NetAudit output)
 		discharge(G, FIFO, (PR_State_t*) &state, u);
 	}
 
-	output->maxFlow = state.e[1];
-	getMinCut(G, output, 1);
+	output->maxFlow = state.e[0];
+	getMinCut(G, (PR_State_t*) &state, output, 0);
 
-	/*
-	printG(G);
-	printf("\nmax flux: %d\n\n", state.e[1]);
-	*/
-  freeQ(FIFO);
 	free(h);
 	free(e);
 	free(active);
+	free(gap);
+
+	freeQ(FIFO);
 }
 
 void printG(Graph G)
